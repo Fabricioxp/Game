@@ -35,7 +35,7 @@ p{font-size:13px;line-height:1.7;color:#c2cbc3}
 #joy{position:absolute;left:20px;bottom:18px;width:124px;height:124px;border:1px solid #dbe3dc55;border-radius:50%;background:#18211d66;pointer-events:auto;touch-action:none}
 #stick{position:absolute;width:50px;height:50px;left:36px;top:36px;border:1px solid #e2e9e188;border-radius:50%;background:#b9c5bc55;pointer-events:none}
 #look{position:absolute;right:0;top:0;width:55%;height:100%;pointer-events:auto;touch-action:none}
-#buttons{position:absolute;right:12px;bottom:18px;display:flex;gap:7px;align-items:end;pointer-events:auto}#action,#hide{display:none}#action.available,#hide.available{display:block}.setting output{min-width:2.5em;text-align:right;color:#e6e9e4}
+#buttons{position:absolute;right:12px;bottom:18px;display:flex;gap:7px;align-items:end;pointer-events:auto}#action,#hide,#knife,#shoot{display:none}#action.available,#hide.available,#knife.available,#shoot.available{display:block}.setting output{min-width:2.5em;text-align:right;color:#e6e9e4}
 .ctrl{width:58px;height:58px;border-radius:50%;padding:3px;font-size:9px;background:#101713df}
 .ctrl.main{width:72px;height:72px;border-color:#c6d0c7}
 #toast{position:fixed;z-index:30;top:20%;left:50%;transform:translateX(-50%);background:#080c0bed;border:1px solid #758078;padding:11px 16px;font-size:11px;max-width:80vw;text-align:center;opacity:0;transition:opacity .2s;pointer-events:none}
@@ -50,10 +50,10 @@ p{font-size:13px;line-height:1.7;color:#c2cbc3}
 <div id="rotate"><div><h2>GIRE O CELULAR</h2><p>O jogo foi pensado para a tela horizontal.</p></div></div>
 <canvas id="game"></canvas>
 <div id="hud" class="hidden">
- <div class="hudrow"><div class="readout"><b id="room">ALA DE EMERGÊNCIA</b><br><span>CAPÍTULO 1 · O DESPERTAR</span></div><div class="readout">SAÚDE <b id="hp">100%</b><div class="meter"><span id="hpbar" style="width:100%"></span></div><br>FOLEGO <b id="st">100%</b><div class="meter"><span id="stbar" style="width:100%"></span></div></div></div>
+ <div class="hudrow"><div class="readout"><b id="room">ALA DE EMERGÊNCIA</b><br><span id="roomSub">CAPÍTULO 1 · O DESPERTAR</span></div><div class="readout">SAÚDE <b id="hp">100%</b><div class="meter"><span id="hpbar" style="width:100%"></span></div><br>FOLEGO <b id="st">100%</b><div class="meter"><span id="stbar" style="width:100%"></span></div><br><span>ARMA <b id="ammo">—</b></span><br><span id="weaponName">SEM ARMA</span></div></div>
  <div id="objective" class="readout">OBJETIVO · Descubra o que aconteceu.</div><div id="prompt"></div>
 </div>
-<div id="controls" class="hidden"><div id="joy"><div id="stick"></div></div><div id="look"></div><div id="buttons"><button class="ctrl" id="flash">LUZ</button><button class="ctrl" id="run">CORRER</button><button class="ctrl" id="crouch">AGACHAR</button><button class="ctrl" id="hide">ESCONDER</button><button class="ctrl main" id="action">USAR</button></div></div>
+<div id="controls" class="hidden"><div id="joy"><div id="stick"></div></div><div id="look"></div><div id="buttons"><button class="ctrl" id="flash">LUZ</button><button class="ctrl" id="run">CORRER</button><button class="ctrl" id="crouch">AGACHAR</button><button class="ctrl" id="hide">ESCONDER</button><button class="ctrl" id="knife">FACA</button><button class="ctrl" id="shoot">ATIRAR</button><button class="ctrl main" id="action">USAR</button></div></div>
 <div id="toast"></div>
 <div class="overlay" id="menu"><div class="card"><div class="kicker">Experiência de terror e sobrevivência · 2.5D</div><h1>O HOSPITAL</h1><div class="kicker">CAPÍTULO 1 — O DESPERTAR</div><p>Você desperta em uma ala hospitalar abandonada. A energia caiu. Há sinais de evacuação, registros incompletos e algo faminto vagando pelos corredores. Encontre respostas — e uma saída.</p><div class="menuBtns"><button type="button" id="start">INICIAR JOGO</button><button type="button" id="settingsOpen">CONFIGURAÇÕES</button><button id="friend" disabled>JOGAR COM AMIGO · EM BREVE</button></div><div class="subtle">SEM ÁUDIO NESTA VERSÃO · 1 ANDAR · CAPÍTULO 1</div></div></div>
 <div class="overlay hidden" id="settings"><div class="card"><div class="kicker">Preferências</div><h2>CONFIGURAÇÕES</h2><div class="setting"><span>Brilho do cenário</span><input id="brightness" type="range" min=".65" max="1.35" step=".05" value="1"></div><div class="setting"><span>Escala da interface</span><input id="uiScale" type="range" min=".85" max="1.2" step=".05" value="1"></div><div class="setting"><span>Reduzir efeitos visuais</span><input id="reduced" type="checkbox"></div><p class="subtle">As opções são aplicadas imediatamente nesta sessão.</p><button type="button" id="settingsBack">VOLTAR</button></div></div>
@@ -73,10 +73,15 @@ function carve(x,y,w,h){for(let j=y;j<y+h;j++)for(let i=x;i<x+w;i++)if(grid[j]&&
 function rectWall(x,y,w,h){for(let j=y;j<y+h;j++)for(let i=x;i<x+w;i++)if(grid[j]&&grid[j][i]!==undefined)grid[j][i]=1}
 carve(13,1,11,5);carve(13,6,11,3);carve(8,9,21,4);carve(13,13,11,4);carve(13,17,11,3);carve(4,9,4,8);carve(29,9,4,8);carve(4,17,29,3);carve(13,20,11,5);
 carve(10,11,3,1);carve(24,11,5,1);carve(17,5,3,4);carve(17,13,3,4);carve(17,17,3,3);carve(17,20,3,5);
-const rooms=[{n:'ALA DE EMERGÊNCIA',x:13,y:1,w:11,h:5},{n:'RECEPÇÃO',x:8,y:9,w:21,h:4},{n:'ENFERMARIA',x:4,y:9,w:4,h:8},{n:'FARMÁCIA',x:29,y:9,w:4,h:8},{n:'UTI',x:13,y:13,w:11,h:4},{n:'MANUTENÇÃO',x:13,y:20,w:11,h:5},{n:'SAÍDA PRINCIPAL',x:17,y:23,w:3,h:2}];
+/* divisórias e nichos: mantêm os pontos dos puzzles livres, mas dão identidade arquitetônica às salas */
+rectWall(14,1,1,2);rectWall(22,1,1,2);rectWall(14,4,1,2);rectWall(22,4,1,2);
+rectWall(8,9,2,1);rectWall(8,12,3,1);rectWall(26,9,3,1);rectWall(27,12,2,1);
+rectWall(4,9,1,2);rectWall(7,9,1,3);rectWall(4,15,1,2);rectWall(7,14,1,3);
+rectWall(29,9,1,2);rectWall(32,9,1,3);rectWall(29,15,1,2);rectWall(32,14,1,3);
+const rooms=[{n:'ALA DE EMERGÊNCIA',sub:'OBSERVAÇÃO / TRIAGEM',x:13,y:1,w:11,h:5,theme:'emergency'},{n:'RECEPÇÃO',sub:'LOBBY / ARQUIVO',x:8,y:9,w:21,h:4,theme:'reception'},{n:'ENFERMARIA',sub:'LEITOS DE ISOLAMENTO',x:4,y:9,w:4,h:8,theme:'ward'},{n:'FARMÁCIA',sub:'SUPRIMENTOS / CONTROLE',x:29,y:9,w:4,h:8,theme:'pharmacy'},{n:'UTI',sub:'UNIDADE DE TERAPIA INTENSIVA',x:13,y:13,w:11,h:4,theme:'icu'},{n:'MANUTENÇÃO',sub:'GERADOR / SERVIÇOS',x:13,y:20,w:11,h:5,theme:'maintenance'},{n:'SAÍDA PRINCIPAL',sub:'ACESSO EXTERNO',x:17,y:23,w:3,h:2,theme:'exit'}];
 const furniture=[];
 function prop(x,y,w,h,type='cabinet',block=true){furniture.push({x,y,w,h,type,block})}
-prop(15,3,2,1,'bed');prop(20,3,2,1,'bed');prop(17,10,3,1,'desk');prop(22,10,2,1,'cabinet');prop(5,11,1,2,'bed');prop(5,15,1,2,'bed');prop(31,11,1,2,'shelf');prop(31,15,1,2,'shelf');prop(15,14,2,1,'bed');prop(21,14,2,1,'bed');prop(15,22,2,1,'crate');prop(22,23,1,2,'generator');prop(16,2,1.2,.55,'locker');prop(21.5,2,1.2,.55,'locker');prop(6,14,1.1,.55,'locker');prop(30,16,1.1,.55,'locker');prop(25,10,1,.5,'chair',false);prop(12,11,.6,.6,'stretcher',false);
+prop(15,3,2,1,'bed');prop(20,3,2,1,'bed');prop(17,10,3,1,'desk');prop(22,10,2,1,'cabinet');prop(5,11,1,2,'bed');prop(5,15,1,2,'bed');prop(31,11,1,2,'shelf');prop(31,15,1,2,'shelf');prop(15,14,2,1,'bed');prop(21,14,2,1,'bed');prop(15,22,2,1,'crate');prop(22,23,1,2,'generator');prop(16,2,1.2,.55,'locker');prop(21.5,2,1.2,.55,'locker');prop(6,14,1.1,.55,'locker');prop(30,16,1.1,.55,'locker');prop(25,10,1,.5,'chair',false);prop(12,11,.6,.6,'stretcher',false);prop(14.5,2.1,.8,.5,'monitor',false);prop(23,4.7,.7,.45,'monitor',false);prop(9.3,10.2,.7,.5,'desk',false);prop(27,10.2,.7,.5,'desk',false);prop(14.2,15.8,.7,.4,'monitor',false);prop(23,15.8,.7,.4,'monitor',false);
 const doors=[{x:18.5,y:8.7,axis:'h',name:'porta corta-fogo',open:false,locked:true},{x:12.9,y:11,axis:'v',name:'porta da enfermaria',open:false,locked:false},{x:28.9,y:11,axis:'v',name:'porta da farmácia',open:false,locked:true},{x:18.5,y:19.8,axis:'h',name:'porta da manutenção',open:false,locked:false}];
 const objects=[
  {id:'chart',x:14.5,y:4.5,label:'Ler prontuário',kind:'note',title:'PRONTUÁRIO 237',text:'Paciente transferido da ala de emergência para a UTI após apresentar comportamento agressivo. A equipe relata que a contenção elétrica ainda funciona. Nota manuscrita: “Não desliguem o gerador. A porta corta-fogo depende dele.”'},
@@ -87,28 +92,37 @@ const objects=[
  {id:'report',x:10,y:10.5,label:'Ler relatório de admissão',kind:'report'},
  {id:'safe',x:27,y:12,label:'Abrir cofre',kind:'safe'},
  {id:'card',x:15,y:15.5,label:'Pegar cartão de acesso',kind:'card'},
- {id:'exit',x:18.5,y:24.5,label:'Usar cartão na saída',kind:'exit'}
+ {id:'exit',x:18.5,y:24.5,label:'Usar cartão na saída',kind:'exit'},
+ {id:'knife',x:30.6,y:14.2,label:'Pegar faca cirúrgica',kind:'knife',hiddenUntil:'pharmacy'},
+ {id:'gun',x:21.8,y:22.2,label:'Pegar pistola de emergência',kind:'gun',hiddenUntil:'code'}
 ];
-let hidden=false;let state={power:false,key:false,pharmacy:false,clue:false,code:false,card:false,report:false,read:false,done:false};
+let hidden=false;let state={power:false,key:false,pharmacy:false,clue:false,code:false,card:false,report:false,read:false,done:false,knife:false,gun:false,ammo:0};
 const player={x:18.5,y:3.8,r:.24,angle:Math.PI/2,hp:100,st:100,crouch:false,run:false,flash:true};
 const zombies=[
- {x:6,y:12.5,homeX:6,homeY:12.5,dir:0,mode:'patrol',alert:0,hp:1,step:0},
- {x:31,y:17,homeX:31,homeY:17,dir:Math.PI,mode:'patrol',alert:0,hp:1,step:1},
- {x:19,y:21.5,homeX:19,homeY:21.5,dir:0,mode:'patrol',alert:0,hp:1,step:2}
+ {x:6,y:12.5,homeX:6,homeY:12.5,dir:0,mode:'patrol',alert:0,hp:1,step:0,vision:true,kind:'runner'},
+ {x:31,y:17,homeX:31,homeY:17,dir:Math.PI,mode:'patrol',alert:0,hp:1,step:1,vision:false,kind:'blind'},
+ {x:19,y:21.5,homeX:19,homeY:21.5,dir:0,mode:'patrol',alert:0,hp:1,step:2,vision:true,kind:'stalker'}
 ];
+const corpses=[{x:15.8,y:2.3,rot:.2},{x:21.8,y:4.5,rot:-.7},{x:6.3,y:14.2,rot:1.1},{x:30.7,y:11.9,rot:-.4},{x:17.5,y:22.8,rot:.5}];
+const spores=[{x:16.8,y:4.2,r:.8},{x:20.6,y:15.1,r:.65},{x:31.5,y:14.9,r:.55},{x:14.5,y:23.2,r:.7},{x:7,y:10.8,r:.5}];
+const bloodPools=[{x:18.8,y:4.8,r:.35},{x:5.2,y:13.8,r:.45},{x:31.1,y:16.1,r:.28},{x:22.4,y:21.2,r:.4}];
 const keys={};let running=false,playing=false,yaw=0,joystick={x:0,y:0},joyId=null,lookId=null,lastLook=null,toastTimer;
 const $=id=>document.getElementById(id);
 function toast(s){$('toast').textContent=s;$('toast').classList.add('show');clearTimeout(toastTimer);toastTimer=setTimeout(()=>$('toast').classList.remove('show'),2200)}
 function setObj(s){$('objective').textContent='OBJETIVO · '+s}
 function showStory(title,text){$('storyTitle').textContent=title;$('storyText').textContent=text;$('story').classList.remove('hidden')}
 function inBounds(x,y){return x>=0&&y>=0&&x<mapW&&y<mapH}
-function solid(x,y){if(!inBounds(Math.floor(x),Math.floor(y)))return true;if(grid[Math.floor(y)][Math.floor(x)]===1)return true;if(doors.some(d=>!d.open&&(d.axis==='h'?Math.abs(y-d.y)<.13&&Math.abs(x-d.x)<.52:Math.abs(x-d.x)<.13&&Math.abs(y-d.y)<.52)))return true;return furniture.some(o=>o.block&&x>=o.x-o.w/2-.16&&x<=o.x+o.w/2+.16&&y>=o.y-o.h/2-.16&&y<=o.y+o.h/2+.16)}
-function canMove(x,y,r=.23){return !solid(x-r,y-r)&&!solid(x+r,y-r)&&!solid(x-r,y+r)&&!solid(x+r,y+r)}
-function lineClear(x1,y1,x2,y2){const d=Math.hypot(x2-x1,y2-y1),n=Math.ceil(d*10);for(let i=1;i<n;i++){let t=i/n;if(solid(x1+(x2-x1)*t,y1+(y2-y1)*t))return false}return true}
+function rectsAtCell(cx,cy){const arr=[];if(!inBounds(cx,cy))return [{x:cx,y:cy,w:1,h:1}];if(grid[cy][cx]===1)arr.push({x:cx,y:cy,w:1,h:1});for(const d of doors){if(d.open)continue;if(d.axis==='h'&&Math.abs(cy+0.5-d.y)<0.65)arr.push({x:d.x-.5,y:d.y-.10,w:1,h:.20});if(d.axis==='v'&&Math.abs(cx+0.5-d.x)<0.65)arr.push({x:d.x-.10,y:d.y-.5,w:.20,h:1})}for(const o of furniture)if(o.block)arr.push({x:o.x-o.w/2,y:o.y-o.h/2,w:o.w,h:o.h});return arr}
+function circleRectHit(cx,cy,r,rr){const qx=Math.max(rr.x,Math.min(cx,rr.x+rr.w)),qy=Math.max(rr.y,Math.min(cy,rr.y+rr.h));return Math.hypot(cx-qx,cy-qy)<r}
+function solidCircle(x,y,r=.23){if(!inBounds(Math.floor(x),Math.floor(y)))return true;const minX=Math.floor(x-r)-1,maxX=Math.floor(x+r)+1,minY=Math.floor(y-r)-1,maxY=Math.floor(y+r)+1;for(let yy=minY;yy<=maxY;yy++)for(let xx=minX;xx<=maxX;xx++)for(const rr of rectsAtCell(xx,yy))if(circleRectHit(x,y,r,rr))return true;return false}
+function canMove(x,y,r=.23){return !solidCircle(x,y,r)}
+function moveEntity(e,dx,dy,r=.23){const steps=Math.max(1,Math.ceil(Math.hypot(dx,dy)/.08));const sx=dx/steps,sy=dy/steps;for(let i=0;i<steps;i++){if(canMove(e.x+sx,e.y,r))e.x+=sx;if(canMove(e.x,e.y+sy,r))e.y+=sy}}
+function lineClear(x1,y1,x2,y2){const d=Math.hypot(x2-x1,y2-y1),n=Math.ceil(d*16);for(let i=1;i<n;i++){const t=i/n;if(solidCircle(x1+(x2-x1)*t,y1+(y2-y1)*t,.035))return false}return true}
 function dist(a,b){return Math.hypot(a.x-b.x,a.y-b.y)}
 function showModal(id){$(id).classList.remove('hidden')}
 function closeModal(id){$(id).classList.add('hidden')}
-function nearby(){let best=null,bd=1.15;for(const o of objects){if(o.done)continue;let d=dist(player,o);if(d<bd){best=o;bd=d}}for(const door of doors){const d=dist(player,door);if(d<bd){best={id:'door_'+doors.indexOf(door),x:door.x,y:door.y,label:door.open?'Fechar '+door.name:'Abrir '+door.name,kind:'door',door};bd=d}}return best}
+function objectVisible(o){if(o.done)return false;if(o.hiddenUntil==='pharmacy'&&!state.pharmacy)return false;if(o.hiddenUntil==='code'&&!state.code)return false;return true}
+function nearby(){let best=null,bd=1.15;for(const o of objects){if(!objectVisible(o))continue;let d=dist(player,o);if(d<bd){best=o;bd=d}}for(const door of doors){const d=dist(player,door);if(d<bd){best={id:'door_'+doors.indexOf(door),x:door.x,y:door.y,label:door.open?'Fechar '+door.name:'Abrir '+door.name,kind:'door',door};bd=d}}return best}
 function interact(){if(!$('story').classList.contains('hidden')||!$('puzzle').classList.contains('hidden')||!$('ending').classList.contains('hidden'))return;let o=nearby();if(!o)return;
  switch(o.kind){
  case'door':if(o.door.locked&&!state.key&&!state.power){toast('A porta está trancada. Procure uma chave ou restaure a energia.');return}o.door.open=!o.door.open;toast(o.door.open?'Porta aberta.':'Porta fechada.');break;
@@ -117,19 +131,27 @@ function interact(){if(!$('story').classList.contains('hidden')||!$('puzzle').cl
  case'report':o.done=true;state.report=true;showStory('RELATÓRIO DE ADMISSÃO','Paciente 001 — primeiro caso registrado em 14/09. No rodapé, alguém escreveu: “A data é a chave. Use quatro algarismos, dia e mês.”');setObj('Descubra o código do cofre.');break;
  case'generator':if(!state.read){toast('Leia o prontuário antes de mexer no gerador.');return}openPuzzle('generator');break;
  case'key':if(!state.power){toast('O compartimento está sem energia.');return}o.done=true;state.key=true;toast('CHAVE DA FARMÁCIA OBTIDA.');setObj('Abra o armário da farmácia e procure o cartão.');break;
+ case'knife':o.done=true;state.knife=true;toast('FACA CIRÚRGICA OBTIDA. Agache e aproxime-se pelas costas.');break;
+ case'gun':o.done=true;state.gun=true;state.ammo=6;toast('PISTOLA DE EMERGÊNCIA OBTIDA · 6 DISPAROS.');break;
  case'cabinet':if(!state.key){toast('O armário está trancado. Precisa da chave da farmácia.');return}o.done=true;showStory('RECADO NO ARMÁRIO','“O cartão da UTI foi deixado na sala de observação. Se a porta principal ainda estiver fechada, o cofre da recepção guarda suprimentos de emergência.”');state.pharmacy=true;setObj('Encontre o cartão de acesso na UTI.');break;
  case'safe':if(!state.clue||!state.report){toast('Faltam pistas nos documentos do hospital.');return}openPuzzle('safe');break;
  case'card':if(!state.pharmacy){toast('Você ainda não sabe onde procurar o cartão.');return}o.done=true;state.card=true;toast('CARTÃO DE ACESSO ENCONTRADO.');setObj('Volte à saída principal.');break;
  case'exit':if(!state.card){toast('A saída exige um cartão de acesso.');return}showStory('A PORTA','O leitor pisca verde. A porta se abre com dificuldade. Do lado de fora, a cidade está sem luz; ao longe, uma sirene interrompe o silêncio. Você sobreviveu ao primeiro setor — por enquanto.');$('storyNext').onclick=()=>{closeModal('story');showModal('ending')};break;
  }}
-function openPuzzle(type){const choices=$('puzzleChoices');choices.innerHTML='';if(type==='generator'){$('puzzleTitle').textContent='PAINEL DO GERADOR';$('puzzleText').textContent='Três disjuntores precisam ser acionados na ordem indicada pelo aviso: estabilize o sistema — 2 → 1 → 3.';let seq=[];[1,2,3].forEach(n=>{let b=document.createElement('button');b.className='choice';b.textContent='ACIONAR DISJUNTOR '+n;b.onclick=()=>{seq.push(n);if(seq.length===3){if(seq.join('')==='213'){state.power=true;objects.find(o=>o.id==='generator').done=true;closeModal('puzzle');toast('ENERGIA RESTAURADA.');setObj('Procure a chave da farmácia.');showStory('ENERGIA RESTAURADA','As lâmpadas de emergência acendem uma a uma. Um ruído pesado ecoa na recepção. Algo percebeu que você está aqui.');}else{seq=[];toast('Sequência incorreta. Tente novamente.')}}};choices.appendChild(b)})}else{$('puzzleTitle').textContent='COFRE DE EMERGÊNCIA';$('puzzleText').textContent='Digite o código de quatro algarismos encontrado nos registros.';let input=document.createElement('input');input.inputMode='numeric';input.maxLength=4;input.placeholder='••••';input.style='font-size:24px;letter-spacing:.4em;text-align:center;width:160px;padding:12px;background:#080c0a;color:#fff;border:1px solid #69756d;border-radius:4px';let b=document.createElement('button');b.className='choice';b.textContent='DESBLOQUEAR';b.onclick=()=>{if(input.value==='1409'){state.code=true;objects.find(o=>o.id==='safe').done=true;closeModal('puzzle');showStory('COFRE ABERTO','Dentro do cofre: duas bandagens, um frasco de analgésico e uma lanterna reserva. Você guarda os recursos.');toast('RECURSOS ADICIONADOS.')}else toast('Código incorreto. Releia os documentos.')};choices.append(input,b)}showModal('puzzle')}
+function openPuzzle(type){const choices=$('puzzleChoices');choices.innerHTML='';if(type==='generator'){$('puzzleTitle').textContent='PAINEL DO GERADOR';$('puzzleText').textContent='Três disjuntores precisam ser acionados na ordem indicada pelo aviso: estabilize o sistema — 2 → 1 → 3.';let seq=[];[1,2,3].forEach(n=>{let b=document.createElement('button');b.className='choice';b.textContent='ACIONAR DISJUNTOR '+n;b.onclick=()=>{seq.push(n);if(seq.length===3){if(seq.join('')==='213'){state.power=true;objects.find(o=>o.id==='generator').done=true;closeModal('puzzle');toast('ENERGIA RESTAURADA.');setObj('Procure a chave da farmácia.');showStory('ENERGIA RESTAURADA','As lâmpadas de emergência acendem uma a uma. Um ruído pesado ecoa na recepção. Algo percebeu que você está aqui.');}else{seq=[];toast('Sequência incorreta. Tente novamente.')}}};choices.appendChild(b)})}else{$('puzzleTitle').textContent='COFRE DE EMERGÊNCIA';$('puzzleText').textContent='Digite o código de quatro algarismos encontrado nos registros.';let input=document.createElement('input');input.inputMode='numeric';input.maxLength=4;input.placeholder='••••';input.style='font-size:24px;letter-spacing:.4em;text-align:center;width:160px;padding:12px;background:#080c0a;color:#fff;border:1px solid #69756d;border-radius:4px';let b=document.createElement('button');b.className='choice';b.textContent='DESBLOQUEAR';b.onclick=()=>{if(input.value==='1409'){state.code=true;objects.find(o=>o.id==='safe').done=true;closeModal('puzzle');showStory('COFRE ABERTO','Dentro do cofre: duas bandagens, um frasco de analgésico, uma lanterna reserva e um compartimento secundário lacrado. A trava secundária se abre: há uma pistola de emergência e seis munições.');toast('RECURSOS + PISTOLA DESBLOQUEADOS.')}else toast('Código incorreto. Releia os documentos.')};choices.append(input,b)}showModal('puzzle')}
 $('puzzleClose').onclick=()=>closeModal('puzzle');
-function update(dt){let ix=joystick.x,iy=joystick.y;if(keys.KeyW||keys.ArrowUp)iy-=1;if(keys.KeyS||keys.ArrowDown)iy+=1;if(keys.KeyA||keys.ArrowLeft)ix-=1;if(keys.KeyD||keys.ArrowRight)ix+=1;let len=Math.hypot(ix,iy);if(len>1){ix/=len;iy/=len}let moving=len>.08,sprint=(running||keys.ShiftLeft)&&player.st>0&&moving&&!player.crouch;let speed=player.crouch?1.35:sprint?3.45:2.15;let dx=ix*speed*dt,dy=iy*speed*dt;if(moving){player.angle=Math.atan2(dy,dx);if(canMove(player.x+dx,player.y))player.x+=dx;if(canMove(player.x,player.y+dy))player.y+=dy}if(sprint)player.st=Math.max(0,player.st-25*dt);else player.st=Math.min(100,player.st+13*dt);
- // Zombie perception: visual cone with hard line-of-sight; sound only when moving fast, within range.
- for(const z of zombies){let d=dist(z,player),ang=Math.atan2(player.y-z.y,player.x-z.x),delta=Math.atan2(Math.sin(ang-z.dir),Math.cos(ang-z.dir));let sees=!hidden&&d<6.4&&Math.abs(delta)<.72&&lineClear(z.x,z.y,player.x,player.y);let noise=moving?(sprint?7.2:player.crouch?0:2.1):0;let hears=!hidden&&noise>0&&d<noise;if(sees||hears){z.mode='chase';z.alert=4.5}else if(z.alert>0)z.alert-=dt;else z.mode='patrol';
- if(z.mode==='chase'){let a=Math.atan2(player.y-z.y,player.x-z.x);z.dir=a;let s=1.7;let nx=z.x+Math.cos(a)*s*dt,ny=z.y+Math.sin(a)*s*dt;if(canMove(nx,z.y,.22))z.x=nx;if(canMove(z.x,ny,.22))z.y=ny;if(!hidden&&d<.82){z.hit=(z.hit||0)-dt;if(z.hit<=0){z.hit=.95;player.hp=Math.max(0,player.hp-12);toast('UM INFECTADO TE ATINGIU!');if(player.hp<=0)showModal('death')}}}else{z.step+=dt;if(z.step>3.5){z.step=0;z.dir+=((Math.random()-.5)*1.6);z.px=z.homeX+Math.cos(z.dir)*1.3;z.py=z.homeY+Math.sin(z.dir)*1.3}let tx=z.px??z.homeX,ty=z.py??z.homeY,a=Math.atan2(ty-z.y,tx-z.x);if(Math.hypot(tx-z.x,ty-z.y)>.15){z.dir=a;let nx=z.x+Math.cos(a)*.48*dt,ny=z.y+Math.sin(a)*.48*dt;if(canMove(nx,z.y,.22))z.x=nx;if(canMove(z.x,ny,.22))z.y=ny}}}
- let room=rooms.find(r=>player.x>=r.x&&player.x<r.x+r.w&&player.y>=r.y&&player.y<r.y+r.h);if(room)$('room').textContent=room.n;$('hp').textContent=Math.ceil(player.hp)+'%';$('hpbar').style.width=player.hp+'%';$('st').textContent=Math.ceil(player.st)+'%';$('stbar').style.width=player.st+'%';let o=nearby();$('prompt').style.display=o?'block':'none';if(o)$('prompt').textContent='✋  '+o.label+'  [E]';$('action').classList.toggle('available',!!o);const locker=furniture.some(f=>f.type==='locker'&&Math.hypot(player.x-f.x,player.y-f.y)<1.05);$('hide').classList.toggle('available',hidden||locker);
-}
+function zombieCanSee(z){if(!z.vision)return false;const d=dist(z,player);if(hidden||d>6.4)return false;const ang=Math.atan2(player.y-z.y,player.x-z.x),delta=Math.atan2(Math.sin(ang-z.dir),Math.cos(ang-z.dir));return Math.abs(delta)<.78&&lineClear(z.x,z.y,player.x,player.y)}
+function zombieHear(z,noise){return !hidden&&noise>0&&dist(z,player)<noise}
+function nearestZombieForAttack(range=1.15){let best=null,bd=range;for(const z of zombies){if(z.dead)continue;const d=dist(z,player);if(d<bd){best=z;bd=d}}return best}
+function killZombie(z,method){z.dead=true;z.mode='dead';z.alert=0;z.deathTime=performance.now();toast(method==='knife'?'INFECTADO ELIMINADO SILENCIOSAMENTE.':'INFECTADO DERRUBADO.')}
+function shoot(){if(!playing||!state.gun||state.ammo<=0){if(!state.gun)toast('Você ainda não encontrou uma arma.');else toast('Sem munição.');return}state.ammo--;const a=player.angle;let target=null,best=1.8;for(const z of zombies){if(z.dead)continue;const dx=z.x-player.x,dy=z.y-player.y,d=Math.hypot(dx,dy);if(d>7)continue;const da=Math.abs(Math.atan2(Math.sin(Math.atan2(dy,dx)-a),Math.cos(Math.atan2(dy,dx)-a)));if(da<.22&&d<best&&lineClear(player.x,player.y,z.x,z.y)){target=z;best=d}}for(const z of zombies){if(z.dead)continue;const dd=dist(z,player);if(dd<10){z.alert=6;z.mode='chase';}}if(target)killZombie(target,'gun');else toast('O disparo acertou a escuridão.')}
+function knifeAttack(){if(!state.knife){toast('Você não encontrou uma faca.');return}if(!player.crouch){toast('Agache para fazer um ataque silencioso.');return}const z=nearestZombieForAttack(1.15);if(!z){toast('Aproxime-se pelas costas de um infectado.');return}const toP=Math.atan2(player.y-z.y,player.x-z.x);const delta=Math.abs(Math.atan2(Math.sin(toP-z.dir),Math.cos(toP-z.dir)));if(delta>.72&&!zombieCanSee(z)){killZombie(z,'knife')}else toast('Ele percebeu você! Fique atrás dele e fora da visão.')}
+function update(dt){let ix=joystick.x,iy=joystick.y;if(keys.KeyW||keys.ArrowUp)iy-=1;if(keys.KeyS||keys.ArrowDown)iy+=1;if(keys.KeyA||keys.ArrowLeft)ix-=1;if(keys.KeyD||keys.ArrowRight)ix+=1;let len=Math.hypot(ix,iy);if(len>1){ix/=len;iy/=len}let moving=len>.08,sprint=(running||keys.ShiftLeft)&&player.st>0&&moving&&!player.crouch;let speed=player.crouch?1.35:sprint?3.45:2.15;let dx=ix*speed*dt,dy=iy*speed*dt;if(moving){player.angle=Math.atan2(dy,dx);moveEntity(player,dx,dy,player.r)}if(sprint)player.st=Math.max(0,player.st-25*dt);else player.st=Math.min(100,player.st+13*dt);
+ let noise=moving?(sprint?7.2:player.crouch?0:2.1):0;
+ for(const z of zombies){if(z.dead)continue;let d=dist(z,player);let sees=zombieCanSee(z),hears=zombieHear(z,noise);if(sees||hears){z.mode='chase';z.alert=5.5}else if(z.alert>0)z.alert-=dt;else z.mode='patrol';
+   if(z.mode==='chase'){let a=Math.atan2(player.y-z.y,player.x-z.x);z.dir=a;let s=z.kind==='runner'?1.9:z.kind==='blind'?1.55:1.7;moveEntity(z,Math.cos(a)*s*dt,Math.sin(a)*s*dt,.22);if(!hidden&&d<.78){z.hit=(z.hit||0)-dt;if(z.hit<=0){z.hit=.95;player.hp=Math.max(0,player.hp-(z.kind==='runner'?16:12));toast('UM INFECTADO TE ATINGIU!');if(player.hp<=0)showModal('death')}}}
+   else{z.step+=dt;if(z.step>3.5){z.step=0;z.dir+=((Math.random()-.5)*1.6);z.px=z.homeX+Math.cos(z.dir)*1.3;z.py=z.homeY+Math.sin(z.dir)*1.3}let tx=z.px??z.homeX,ty=z.py??z.homeY,a=Math.atan2(ty-z.y,tx-z.x);if(Math.hypot(tx-z.x,ty-z.y)>.15){z.dir=a;moveEntity(z,Math.cos(a)*.48*dt,Math.sin(a)*.48*dt,.22)}}}
+ let room=rooms.find(r=>player.x>=r.x&&player.x<r.x+r.w&&player.y>=r.y&&player.y<r.y+r.h);if(room){$('room').textContent=room.n;$('roomSub').textContent=room.sub} $('hp').textContent=Math.ceil(player.hp)+'%';$('hpbar').style.width=player.hp+'%';$('st').textContent=Math.ceil(player.st)+'%';$('stbar').style.width=player.st+'%';$('ammo').textContent=state.gun?state.ammo:'—';$('weaponName').textContent=state.gun?'PISTOLA DE EMERGÊNCIA':state.knife?'FACA CIRÚRGICA':'SEM ARMA';let o=nearby();$('prompt').style.display=o?'block':'none';if(o)$('prompt').textContent='✋  '+o.label+'  [E]';$('action').classList.toggle('available',!!o);const locker=furniture.some(f=>f.type==='locker'&&Math.hypot(player.x-f.x,player.y-f.y)<1.05);$('hide').classList.toggle('available',hidden||locker);const kz=nearestZombieForAttack(1.15);$('knife').classList.toggle('available',!!kz&&state.knife);$('shoot').classList.toggle('available',state.gun&&state.ammo>0);}
 function roundRect(x,y,w,h,r){
   ctx.beginPath();
   if(ctx.roundRect){ctx.roundRect(x,y,w,h,r)}
@@ -258,15 +280,16 @@ function drawCharacter(x,y,angle,type,tile,ox,oy,hiddenChar=false){
   ctx.beginPath();
   ctx.moveTo(-bodyW*.42,0);ctx.lineTo(-bodyW*.7+fx*7,7+fy*7);
   ctx.moveTo(bodyW*.42,0);ctx.lineTo(bodyW*.7+fx*7,7+fy*7);ctx.stroke();
-  /* cabeça */
+  /* cabeça separada do cabelo: cabelo acompanha a nuca, nunca o rosto */
   ctx.fillStyle=skin;ctx.beginPath();ctx.arc(0,-h*.72,9,0,Math.PI*2);ctx.fill();
-  ctx.fillStyle=type==='player'?'#202923':'#343a34';ctx.beginPath();ctx.arc(0,-h*.78,9,Math.PI,Math.PI*2);ctx.fill();
-  /* rosto voltado para a direção */
+  ctx.save();ctx.translate(0,-h*.72);ctx.rotate(angle);
+  ctx.fillStyle=type==='player'?'#202923':'#343a34';ctx.beginPath();ctx.arc(0,0,9.5,Math.PI*.88,Math.PI*2.12);ctx.fill();
+  if(type==='player'){ctx.fillStyle='#141b17';ctx.fillRect(-8,-2,16,5);ctx.fillStyle='#202923';ctx.beginPath();ctx.arc(-5,2,4,0,Math.PI*2);ctx.fill()}
+  ctx.restore();
   const ex=fx*5,ey=fy*5-h*.72;
-  ctx.fillStyle=type==='player'?'#e1e6d9':'#a84e49';
-  ctx.beginPath();ctx.arc(ex-rx*3,ey-ry*3,1.7,0,Math.PI*2);ctx.arc(ex+rx*3,ey+ry*3,1.7,0,Math.PI*2);ctx.fill();
-  if(type==='player'){ctx.fillStyle='#e1e6d9';ctx.fillRect(fx*6-2,fy*6-3,4,10)}
-  else{ctx.strokeStyle='#30362f';ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(fx*4-rx*5,fy*4-ry*5);ctx.lineTo(fx*4+rx*5,fy*4+ry*5);ctx.stroke()}
+  if(type==='player'){ctx.fillStyle='#202923';ctx.fillRect(ex-4,ey-4,8,3);ctx.fillStyle='#dfe6dc';ctx.beginPath();ctx.arc(ex-rx*3,ey-ry*3,1.7,0,Math.PI*2);ctx.arc(ex+rx*3,ey+ry*3,1.7,0,Math.PI*2);ctx.fill();}
+  else {const zBlind=false;ctx.fillStyle='#a84e49';if(!zBlind){ctx.beginPath();ctx.arc(ex-rx*3,ey-ry*3,1.7,0,Math.PI*2);ctx.arc(ex+rx*3,ey+ry*3,1.7,0,Math.PI*2);ctx.fill()}ctx.strokeStyle='#30362f';ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(ex-rx*5,ey-ry*5);ctx.lineTo(ex+rx*5,ey+ry*5);ctx.stroke();ctx.fillStyle='#778c5f99';ctx.beginPath();ctx.arc(-7, -h*.63,4,0,Math.PI*2);ctx.arc(7,-h*.55,3,0,Math.PI*2);ctx.fill()}
+  if(type==='zombie'){ctx.fillStyle='#8fa36f55';ctx.beginPath();ctx.arc(-10,2,5,0,Math.PI*2);ctx.arc(9,9,4,0,Math.PI*2);ctx.fill()}
   ctx.restore();
 }
 function drawFlashlight(tile,ox,oy){
@@ -291,10 +314,7 @@ function drawFlashlight(tile,ox,oy){
   cone.addColorStop(.42,'rgba(235,236,204,.16)');
   cone.addColorStop(1,'rgba(235,236,204,0)');
   ctx.fillStyle=cone;ctx.beginPath();ctx.moveTo(px,py);ctx.arc(px,py,maxR,a-GFX.fov,a+GFX.fov);ctx.closePath();ctx.fill();
-  /* foco na direção */
-  const beamLen=maxR*.75;
-  ctx.strokeStyle='rgba(255,252,225,.13)';ctx.lineWidth=12;ctx.lineCap='round';
-  ctx.beginPath();ctx.moveTo(px,py);ctx.lineTo(px+Math.cos(a)*beamLen,py+Math.sin(a)*beamLen);ctx.stroke();
+  /* foco suave: sem linha visível, apenas o feixe difuso */
   ctx.restore();
   /* vinheta */
   let vg=ctx.createRadialGradient(W/2,H/2,Math.min(W,H)*.30,W/2,H/2,Math.max(W,H)*.72);
@@ -322,12 +342,21 @@ function draw(){
     }
   }
 
+  /* identidade visual de cada setor */
+  for(const r of rooms){const [rx,ry]=project(r.x+r.w/2,r.y+r.h/2,tile,ox,oy);const colors={emergency:'#58645b',reception:'#625f52',ward:'#59685d',pharmacy:'#655c49',icu:'#4f5f66',maintenance:'#5f5446',exit:'#6a514b'};ctx.fillStyle=(colors[r.theme]||'#59635a')+'22';ctx.fillRect(rx-r.w*tile*.42,ry-r.h*tile*.42,r.w*tile*.84,r.h*tile*.84);ctx.fillStyle='#d8ddd5aa';ctx.font='700 9px system-ui';ctx.textAlign='center';ctx.fillText(r.n,rx,ry-r.h*tile*.38);ctx.fillStyle='#aeb8b0aa';ctx.font='7px system-ui';ctx.fillText(r.sub,rx,ry-r.h*tile*.38+11);}
+  /* placas físicas acima das entradas */
+  const signs=[{x:18.5,y:7.95,t:'EMERGÊNCIA',c:'#69796e'},{x:12.35,y:11,t:'ENFERMARIA',c:'#66806f'},{x:29.45,y:11,t:'FARMÁCIA',c:'#8b7654'},{x:18.5,y:19.1,t:'MANUTENÇÃO',c:'#80694e'}];
+  for(const sg of signs){const [x,y]=project(sg.x,sg.y,tile,ox,oy);ctx.fillStyle='#111814dd';ctx.fillRect(x-40,y-15,80,19);ctx.strokeStyle=sg.c;ctx.strokeRect(x-40,y-15,80,19);ctx.fillStyle='#dfe5dd';ctx.font='700 7px system-ui';ctx.textAlign='center';ctx.fillText(sg.t,x,y-3)}
+  for(const b of bloodPools){const [x,y]=project(b.x,b.y,tile,ox,oy);ctx.save();ctx.fillStyle='#5e1d1a99';ctx.beginPath();ctx.ellipse(x,y,b.r*tile,b.r*tile*.58,b.r,0,Math.PI*2);ctx.fill();ctx.fillStyle='#7d282388';ctx.beginPath();ctx.arc(x+b.r*tile*.6,y+4,2,0,Math.PI*2);ctx.fill();ctx.restore()}
+  for(const s of spores){const [x,y]=project(s.x,s.y,tile,ox,oy);ctx.save();ctx.fillStyle='#9eae7b25';ctx.beginPath();ctx.arc(x,y,s.r*tile,0,Math.PI*2);ctx.fill();for(let k=0;k<6;k++){const a=k*1.05;ctx.fillStyle='#c4d59b55';ctx.beginPath();ctx.arc(x+Math.cos(a)*s.r*tile*.6,y+Math.sin(a)*s.r*tile*.6,2.5,0,Math.PI*2);ctx.fill()}ctx.restore()}
+  for(const c of corpses){const [x,y]=project(c.x,c.y,tile,ox,oy);ctx.save();ctx.translate(x,y);ctx.rotate(c.rot);ctx.fillStyle='#0009';ctx.beginPath();ctx.ellipse(0,9,22,9,0,0,Math.PI*2);ctx.fill();ctx.fillStyle='#303a34';ctx.fillRect(-8,-13,25,12);ctx.fillStyle='#6b7068';ctx.beginPath();ctx.arc(-14,-10,7,0,Math.PI*2);ctx.fill();ctx.strokeStyle='#687169';ctx.lineWidth=4;ctx.beginPath();ctx.moveTo(15,-8);ctx.lineTo(27,-16);ctx.moveTo(12,0);ctx.lineTo(27,7);ctx.stroke();ctx.fillStyle='#681e1b99';ctx.beginPath();ctx.arc(-4,-5,4,0,Math.PI*2);ctx.fill();ctx.restore()}
+
   /* objetos são desenhados por profundidade para parecerem assentados no chão */
   const renderables=[];
   for(const f of furniture)renderables.push({depth:f.y+(f.h/2),kind:'f',o:f});
   for(const d of doors)renderables.push({depth:d.y,kind:'d',o:d});
   for(const o of objects)if(!o.done)renderables.push({depth:o.y,kind:'o',o:o});
-  for(const z of zombies)renderables.push({depth:z.y,kind:'z',o:z});
+  for(const z of zombies)if(!z.dead)renderables.push({depth:z.y,kind:'z',o:z});
   renderables.push({depth:player.y,kind:'p',o:player});
   renderables.sort((a,b)=>a.depth-b.depth);
 
@@ -347,9 +376,9 @@ function draw(){
       ctx.save();ctx.shadowColor='#000';ctx.shadowBlur=9;
       ctx.fillStyle=o.kind==='key'?'#c5a94e':o.kind==='card'?'#5d9b83':o.kind==='safe'?'#66736c':o.kind==='exit'?'#8f4944':'#d1c7a0';
       const s=9;ctx.fillRect(x-s,y-s*.6,18,12);ctx.restore();
-      ctx.fillStyle='#fff8';ctx.fillRect(x-5,y-3,10,2);
+      ctx.fillStyle='#fff8';ctx.fillRect(x-5,y-3,10,2);if(o.kind==='gun'){ctx.fillStyle='#202522';ctx.fillRect(x-10,y-2,16,4);ctx.fillRect(x-4,y+2,5,7);ctx.fillStyle='#b8c0b8';ctx.fillRect(x+5,y-4,4,3)}if(o.kind==='knife'){ctx.fillStyle='#c8d0c8';ctx.beginPath();ctx.moveTo(x-9,y+2);ctx.lineTo(x+8,y-4);ctx.lineTo(x+9,y-1);ctx.lineTo(x-7,y+4);ctx.closePath();ctx.fill();ctx.fillStyle='#333b34';ctx.fillRect(x-11,y+1,5,4)}
     } else if(r.kind==='z'){
-      drawCharacter(r.o.x,r.o.y,r.o.dir,'zombie',tile,ox,oy,false);
+      drawCharacter(r.o.x,r.o.y,r.o.dir,'zombie',tile,ox,oy,false); if(r.o.vision===false){const [bx,by]=project(r.o.x,r.o.y,tile,ox,oy);ctx.fillStyle='#222b24';ctx.fillRect(bx-7,by-28,14,5);ctx.fillStyle='#9eae7b55';ctx.beginPath();ctx.arc(bx-11,by-5,4,0,Math.PI*2);ctx.arc(bx+11,by+2,3,0,Math.PI*2);ctx.fill();}
     } else {
       drawCharacter(player.x,player.y,player.angle,'player',tile,ox,oy,hidden);
     }
@@ -373,11 +402,11 @@ $('start').onclick=()=>{immersive();playing=true;closeModal('menu');$('hud').cla
 $('settingsOpen').onclick=()=>showModal('settings');$('settingsBack').onclick=()=>closeModal('settings');$('settingsOpen').addEventListener('pointerup',e=>{e.preventDefault();showModal('settings')});$('settingsBack').addEventListener('pointerup',e=>{e.preventDefault();closeModal('settings')});$('start').addEventListener('pointerup',e=>{e.preventDefault();if(!playing){immersive();playing=true;closeModal('menu');$('hud').classList.remove('hidden');$('controls').classList.remove('hidden');showStory('O DESPERTAR','Você acorda no chão frio da ala de emergência. O último som que lembra é o de uma porta sendo trancada. O prontuário próximo pode explicar por que a energia não pode permanecer desligada.')}});
 $('brightness').oninput=e=>{brightness=+e.target.value;settings.brightness=brightness;canvas.style.filter=`brightness(${brightness})`};$('uiScale').oninput=e=>{scale=+e.target.value;settings.uiScale=scale;document.documentElement.style.setProperty('--ui-scale',scale);$('hud').style.transform=`scale(${scale})`;$('hud').style.transformOrigin='top left';$('controls').style.transform=`scale(${scale})`;$('controls').style.transformOrigin='bottom right'};$('reduced').onchange=e=>{reduced=e.target.checked;settings.reduced=reduced;document.body.classList.toggle('reduced-effects',reduced);canvas.style.imageRendering=reduced?'pixelated':'auto'};
 $('storyNext').onclick=()=>closeModal('story');
-$('action').onclick=interact;$('hide').onclick=()=>{let f=furniture.find(f=>f.type==='locker'&&Math.hypot(player.x-f.x,player.y-f.y)<1.05);if(!hidden&&f){hidden=true;player.x=f.x;player.y=f.y;toast('Você se escondeu. Fique imóvel e evite chamar atenção.')}else if(hidden){hidden=false;toast('Você saiu do esconderijo.')}else toast('Aproxime-se de um armário para se esconder.');};$('flash').onclick=()=>{player.flash=!player.flash};$('crouch').onclick=()=>{player.crouch=!player.crouch;$('crouch').style.borderColor=player.crouch?'#d4d9ce':'#69756d'};
+$('action').onclick=interact;$('shoot').onclick=shoot;$('knife').onclick=knifeAttack;$('hide').onclick=()=>{let f=furniture.find(f=>f.type==='locker'&&Math.hypot(player.x-f.x,player.y-f.y)<1.05);if(!hidden&&f){hidden=true;player.x=f.x;player.y=f.y;toast('Você se escondeu. Fique imóvel e evite chamar atenção.')}else if(hidden){hidden=false;toast('Você saiu do esconderijo.')}else toast('Aproxime-se de um armário para se esconder.');};$('flash').onclick=()=>{player.flash=!player.flash};$('crouch').onclick=()=>{player.crouch=!player.crouch;$('crouch').style.borderColor=player.crouch?'#d4d9ce':'#69756d'};
 const runBtn=$('run');runBtn.onpointerdown=e=>{e.preventDefault();running=true};['pointerup','pointercancel','pointerleave'].forEach(ev=>runBtn.addEventListener(ev,()=>running=false));addEventListener('pointerup',()=>running=false);
 const joy=$('joy'),stick=$('stick');function joyMove(e){let r=joy.getBoundingClientRect(),dx=e.clientX-(r.left+r.width/2),dy=e.clientY-(r.top+r.height/2),l=Math.hypot(dx,dy),m=35;if(l>m){dx*=m/l;dy*=m/l}joystick.x=dx/m;joystick.y=dy/m;stick.style.transform=`translate(${dx}px,${dy}px)`}joy.onpointerdown=e=>{joyId=e.pointerId;joy.setPointerCapture(joyId);joyMove(e)};joy.onpointermove=e=>{if(e.pointerId===joyId)joyMove(e)};function joyEnd(){joyId=null;joystick.x=joystick.y=0;stick.style.transform='translate(0,0)'}joy.onpointerup=joyEnd;joy.onpointercancel=joyEnd;
 $('look').onpointerdown=e=>{lookId=e.pointerId;lastLook=[e.clientX,e.clientY];$('look').setPointerCapture(lookId)};$('look').onpointermove=e=>{if(e.pointerId!==lookId)return;let dx=e.clientX-lastLook[0],dy=e.clientY-lastLook[1];player.angle=Math.atan2(dy,dx);lastLook=[e.clientX,e.clientY]};$('look').onpointerup=$('look').onpointercancel=()=>lookId=null;
-addEventListener('keydown',e=>{keys[e.code]=true;if(e.code==='KeyE'||e.code==='Space')interact();if(e.code==='KeyF')player.flash=!player.flash;if(e.code==='KeyL')player.flash=!player.flash;if(e.code==='ControlLeft')player.crouch=true});addEventListener('keyup',e=>{keys[e.code]=false;if(e.code==='ControlLeft')player.crouch=false});addEventListener('keydown',e=>{if(e.code==='Escape'){['story','puzzle','settings'].forEach(id=>closeModal(id));}});
+addEventListener('keydown',e=>{keys[e.code]=true;if(e.code==='KeyE'||e.code==='Space')interact();if(e.code==='KeyF')player.flash=!player.flash;if(e.code==='KeyL')player.flash=!player.flash;if(e.code==='KeyR')shoot();if(e.code==='KeyV')knifeAttack();if(e.code==='ControlLeft')player.crouch=true});addEventListener('keyup',e=>{keys[e.code]=false;if(e.code==='ControlLeft')player.crouch=false});addEventListener('keydown',e=>{if(e.code==='Escape'){['story','puzzle','settings'].forEach(id=>closeModal(id));}});
 })();
 </script>
 </body>
