@@ -78,6 +78,52 @@ button:disabled{opacity:.45;pointer-events:none}
 body.fullEditor #top,body.fullEditor #bottom,body.fullEditor #left,body.fullEditor #right{display:none}
 body.fullEditor #workspace{height:100dvh}
 body.fullEditor #stageTools{bottom:18px}
+
+/* ===== V4: camada mobile segura, sem substituir a lógica do editor ===== */
+#mobileBar{display:none}
+@media (max-width:650px){
+  body{overflow:hidden}
+  #app{height:100dvh}
+  #top{padding-left:7px;padding-right:7px;gap:5px}
+  #brand{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  #top>.topbtn{display:none}
+  #workspace{height:calc(100dvh - 52px - 64px);position:relative}
+  #left,#right{
+    position:absolute;top:0;bottom:0;z-index:20;
+    width:min(86vw,310px);
+    background:#101611;
+    box-shadow:0 0 24px #000b;
+    transition:transform .18s ease;
+  }
+  #left{left:0;transform:translateX(-105%)}
+  #right{right:0;transform:translateX(105%)}
+  body.mobileLeft #left{transform:translateX(0)}
+  body.mobileRight #right{transform:translateX(0)}
+  #stage{width:100%;height:100%}
+  #bottom{display:none}
+  #mobileBar{
+    position:fixed;left:0;right:0;bottom:0;height:64px;z-index:50;
+    display:grid;grid-template-columns:repeat(5,1fr);gap:5px;
+    padding:6px max(6px,env(safe-area-inset-left)) max(6px,env(safe-area-inset-bottom)) max(6px,env(safe-area-inset-right));
+    box-sizing:border-box;background:#0c110eF5;border-top:1px solid #334039;
+  }
+  #mobileBar button{
+    min-width:0;min-height:48px;border:1px solid #3a4940;border-radius:11px;
+    background:#17201a;color:#e8eee9;font-weight:800;font-size:10px;
+    touch-action:manipulation;-webkit-tap-highlight-color:transparent;
+  }
+  #mobileBar button:active{transform:scale(.97);background:#243127}
+  #mobileBar .mPrimary{background:#2b4634;border-color:#6f8e78}
+  #help{bottom:76px;max-width:68vw}
+  #stageTools{right:8px;bottom:78px}
+  .stageBtn{width:44px;height:44px;font-size:18px}
+  #mini{bottom:78px;left:8px}
+  .asset{min-height:52px}
+  .prop input,.prop select{min-height:42px}
+  .dialog{width:min(94vw,520px);max-height:88dvh;overflow:auto}
+  .modal{padding:10px}
+}
+
 </style>
 </head>
 <body>
@@ -126,6 +172,15 @@ body.fullEditor #stageTools{bottom:18px}
  <button class="bottomBtn" id="gameBtn">BAIXAR JOGO</button>
 </footer>
 </div>
+
+<div id="mobileBar" aria-label="Ferramentas móveis">
+  <button id="mMenu">☰<br><small>RECURSOS</small></button>
+  <button id="mEdit">✎<br><small>EDITAR</small></button>
+  <button id="mProject" class="mPrimary">📦<br><small>PROJETO</small></button>
+  <button id="mExport">💾<br><small>EXPORTAR</small></button>
+  <button id="mMore">⋯<br><small>MAIS</small></button>
+</div>
+
 <div id="toast"></div>
 
 <!-- Projeto -->
@@ -506,5 +561,65 @@ window.addEventListener('beforeunload',e=>{if(dirty){e.preventDefault();e.return
 
 fitMap();renderAll();draw();
 </script>
+
+<script>
+/* ===== V4 MOBILE: apenas atalhos para funções já existentes ===== */
+(function(){
+  function el(id){return document.getElementById(id)}
+  function openLeft(){
+    document.body.classList.remove('mobileRight');
+    document.body.classList.toggle('mobileLeft');
+  }
+  function openRight(){
+    document.body.classList.remove('mobileLeft');
+    document.body.classList.add('mobileRight');
+  }
+  function closePanels(){
+    document.body.classList.remove('mobileLeft','mobileRight');
+  }
+
+  el('mMenu').onclick=function(){
+    if(document.body.classList.contains('mobileLeft')) closePanels();
+    else {
+      closePanels();
+      el('left').style.display='';
+      document.querySelector('.tab[data-tab="assets"]')?.click();
+      openLeft();
+    }
+  };
+
+  el('mEdit').onclick=function(){
+    if(typeof selected==='function' && selected()) openRight();
+    else {
+      closePanels();
+      if(typeof toast==='function') toast('Toque em um objeto no mapa para editar.');
+    }
+  };
+
+  el('mProject').onclick=function(){
+    closePanels();
+    el('projectBtn').click();
+  };
+
+  el('mExport').onclick=function(){
+    closePanels();
+    el('saveBtn').click();
+  };
+
+  el('mMore').onclick=function(){
+    closePanels();
+    el('testBtn').click();
+  };
+
+  el('stage').addEventListener('pointerdown',function(){
+    closePanels();
+  },{passive:true});
+
+  document.addEventListener('fullscreenchange',function(){
+    if(document.fullscreenElement) closePanels();
+  });
+})();
+</script>
+
 </body>
 </html>
