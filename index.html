@@ -131,12 +131,28 @@ body.fullEditor #stageTools{bottom:18px}
  .tabs{display:none}
 }
 
+
+/* V6 — touch-first creator */
+.creatorHint{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);z-index:4;pointer-events:none;background:#0b110dcc;border:1px solid #52665a;border-radius:14px;padding:12px 15px;text-align:center;font-size:11px;box-shadow:0 10px 35px #0008;display:none}
+body.placing .creatorHint{display:block}
+@media(max-width:650px){
+ #mobileBuildSheet{max-height:72dvh}
+ #mobileAssetGrid{grid-template-columns:repeat(3,1fr)}
+ #mobileAssetGrid button{min-height:82px;font-size:27px;border-color:#46564c}
+ .prefabGrid{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-bottom:9px}
+ .prefabGrid button{min-height:58px;text-align:left;font-weight:800}
+ .modeRow{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-bottom:9px}
+ .modeRow button{min-height:46px}
+ #mobileInspector .sheetHead{top:-10px}
+ #mobileQuickProps label{font-size:9px;color:#aab8af}
+}
+
 </style>
 </head>
 <body>
 <div id="app">
 <header id="top">
- <div id="brand">🏥 O HOSPITAL · EDITOR V2</div>
+ <div id="brand">🏥 O HOSPITAL · CREATOR 2.5D</div>
  <button class="topbtn" id="newBtn">NOVO</button>
  <button class="topbtn" id="projectBtn">PROJETO</button>
  <button class="topbtn" id="saveBtn">EXPORTAR</button>
@@ -157,7 +173,7 @@ body.fullEditor #stageTools{bottom:18px}
  <main id="stage">
   <canvas id="canvas"></canvas>
   <div id="help">Toque para selecionar • arraste para mover • pinça/zoom para aproximar</div>
-  <div id="mini">MAPA · <span id="coords">0,0</span></div>
+  <div id="mini">MAPA · <span id="coords">0,0</span></div><div class="creatorHint">📍 <b>TOQUE NO CENÁRIO</b><br>para colocar o objeto aqui</div>
   <div id="stageTools">
    <button class="stageBtn" id="fitBtn" title="Enquadrar">⌗</button>
    <button class="stageBtn" id="stageZoomIn">＋</button>
@@ -247,6 +263,8 @@ body.fullEditor #stageTools{bottom:18px}
 
 <div id="mobileBuildSheet">
  <div class="sheetHead"><b>＋ Construir</b><button id="closeBuild">FECHAR</button></div>
+ <div class="modeRow"><button id="prefabMode">🏥 SALAS PRONTAS</button><button id="assetMode">🧩 OBJETOS</button></div>
+ <div id="mobilePrefabGrid" class="prefabGrid"></div>
  <div id="mobileAssetGrid"></div>
 </div>
 
@@ -473,15 +491,26 @@ function draw(){
 }
 function drawObj(o,t){
  const x=o.x*t,y=o.y*t,w=o.w*t,h=o.h*t,selected=o.id===selectedId;
- if(o.type==='floor'){ctx.fillStyle=o.name?.includes('UTI')?'#18221e':'#1b2420';ctx.fillRect(x-w/2,y-h/2,w,h);ctx.strokeStyle='#39453f';ctx.strokeRect(x-w/2,y-h/2,w,h);return}
- const colors={wall:'#68746d',door:o.open?'#718b78':'#493f39',window:'#54645c',bed:'#70847a',stretcher:'#84918a',desk:'#5d665e',chair:'#606b64',locker:'#56635c',shelf:'#53665b',crate:'#665c4f',generator:'#60685f',lamp:'#d5c58b',blood:'#632f31',corpse:'#3e4742',spore:'#6d7d4b',trash:'#4d5751',paper:'#c7c0a6',player:'#9db7aa',enemy:'#8f5c5c',item:'#d2bf65',weapon:'#b5b5ad',safe:'#5b6260',trigger:'#536e86'};
- ctx.globalAlpha=(o.type==='blood'||o.type==='spore')?.65:1;ctx.fillStyle=colors[o.type]||'#748078';ctx.fillRect(x-w/2,y-h/2,w,h);ctx.globalAlpha=1;
- ctx.strokeStyle=selected?'#f2d48c':'#222a26';ctx.lineWidth=selected?3:1;ctx.strokeRect(x-w/2,y-h/2,w,h);
+ if(o.type==='floor'){
+   const grad=ctx.createLinearGradient(x-w/2,y-h/2,x+w/2,y+h/2);grad.addColorStop(0,o.name?.includes('UTI')?'#202d27':'#1d2823');grad.addColorStop(1,'#121a16');ctx.fillStyle=grad;ctx.fillRect(x-w/2,y-h/2,w,h);
+   ctx.strokeStyle='#3d4e45';ctx.lineWidth=1/view.zoom;ctx.strokeRect(x-w/2,y-h/2,w,h);return;
+ }
+ const colors={wall:'#68766e',door:o.open?'#76957e':'#51443d',window:'#61756c',bed:'#84978e',stretcher:'#89968f',desk:'#66716a',chair:'#68746d',locker:'#5c6c63',shelf:'#596d60',crate:'#766655',generator:'#707a73',lamp:'#d8c98e',blood:'#713638',corpse:'#454f49',spore:'#788953',trash:'#56615a',paper:'#d0c6a9',player:'#a9c5b5',enemy:'#a26767',item:'#dbc66e',weapon:'#c0c0b7',safe:'#68716d',trigger:'#557998'};
+ const fill=colors[o.type]||'#77847c';
+ ctx.save();
+ ctx.globalAlpha=(o.type==='blood'||o.type==='spore')?.68:1;
+ ctx.shadowColor='rgba(0,0,0,.45)';ctx.shadowBlur=10;ctx.shadowOffsetY=5;
+ ctx.fillStyle=fill;ctx.fillRect(x-w/2,y-h/2,w,h);ctx.shadowColor='transparent';
+ if(['wall','door','locker','shelf','desk','generator','safe','crate'].includes(o.type)){
+   const d=Math.max(6,t*.18);ctx.fillStyle='rgba(255,255,255,.08)';ctx.fillRect(x-w/2,y-h/2,w,d);
+   ctx.fillStyle='rgba(0,0,0,.18)';ctx.fillRect(x-w/2,y+h/2-d,w,d);
+ }
+ ctx.globalAlpha=1;ctx.strokeStyle=selected?'#f5d891':'#27322c';ctx.lineWidth=selected?3:1;ctx.strokeRect(x-w/2,y-h/2,w,h);
  const icons={door:o.open?'↔':'🚪',bed:'🛏',stretcher:'▱',desk:'▤',chair:'•',locker:'▥',shelf:'▤',crate:'□',generator:'⚡',lamp:'●',corpse:'☠',trash:'×',paper:'▤',player:'●',enemy:'☠',item:'◆',weapon:'⌁',safe:'▣',trigger:'⚙',window:'□'};
- const icon=icons[o.type];if(icon){ctx.font=Math.max(10,t*.32)+'px sans-serif';ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillStyle='#e7eee9';ctx.fillText(icon,x,y)}
- if(selected){ctx.setLineDash([5,4]);ctx.strokeStyle='#c7d9cc';ctx.strokeRect(x-w/2-4,y-h/2-4,w+8,h+8);ctx.setLineDash([])}
+ const icon=icons[o.type];if(icon){ctx.font=Math.max(11,t*.32)+'px sans-serif';ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillStyle='#f1f6f2';ctx.fillText(icon,x,y)}
+ if(selected){ctx.setLineDash([7,5]);ctx.strokeStyle='#d5e4da';ctx.lineWidth=2;ctx.strokeRect(x-w/2-7,y-h/2-7,w+14,h+14);ctx.setLineDash([]);ctx.fillStyle='#f2d48c';ctx.beginPath();ctx.arc(x+w/2+7,y+h/2+7,7,0,Math.PI*2);ctx.fill()}
+ ctx.restore();
 }
-
 function iconFor(type){return ASSETS.flatMap(c=>c.items).find(a=>a[0]===type)?.[1]||'◻'}
 function escapeHtml(s){return String(s??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]))}
 function renderAssets(){
@@ -572,7 +601,7 @@ function makeGameHTML(){
  #hud{position:fixed;top:max(10px,env(safe-area-inset-top));left:10px;right:10px;display:flex;align-items:center;gap:9px;pointer-events:none}
  .panel{background:#08100dd9;border:1px solid #405047;border-radius:12px;padding:8px 10px;box-shadow:0 6px 25px #0008}
  #title{font-weight:900;font-size:11px;margin-right:auto}.stat{font-size:9px;color:#b9c6be}
- #objective{position:fixed;left:10px;top:54px;max-width:72vw;font-size:10px;line-height:1.35}
+ #objective{position:fixed;left:10px;top:54px;max-width:72vw;font-size:10px;line-height:1.35} #intro{position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);max-width:82vw;font-size:15px;line-height:1.45;text-align:center;padding:18px;display:none}
  #health{height:5px;width:90px;background:#27312b;border-radius:99px;overflow:hidden;margin-top:4px}#hp{height:100%;width:100%;background:#a56f6f}
  #joy{position:fixed;left:18px;bottom:18px;width:132px;height:132px;border-radius:50%;background:#101914aa;border:1px solid #76877d;touch-action:none;backdrop-filter:blur(4px)}
  #stick{position:absolute;width:54px;height:54px;left:39px;top:39px;border-radius:50%;background:#b6c6bb99}
@@ -589,7 +618,7 @@ function makeGameHTML(){
  <body>
  <canvas id="g"></canvas>
  <div id="hud"><div class="panel" id="title">${title} <span class="stat">v${version}</span><div id="health"><div id="hp"></div></div></div><div class="panel stat" id="inventory">Itens: 0</div></div>
- <div id="objective" class="panel">🎯 ${escapeHtml(project.story?.objective||'Explore o hospital.')}</div>
+ <div id="objective" class="panel">🎯 ${escapeHtml(project.story?.objective||'Explore o hospital.')}</div><div id="intro" class="panel">${escapeHtml(project.story?.intro||'')}</div>
  <div id="joy"><div id="stick"></div></div>
  <button id="run" class="act">🏃</button><button id="attack" class="act">⚔</button><button id="use" class="act">USAR</button>
  <div id="msg"></div>
@@ -652,15 +681,27 @@ function makeGameHTML(){
  }
  function draw(){
    x.clearRect(0,0,W,H);
-   const s=Math.min(W/18,H/11);x.fillStyle=P.settings.background||'#0b100d';x.fillRect(0,0,W,H);
+   const s=Math.min(W/18,H/11);
+   const bg=x.createLinearGradient(0,0,0,H);bg.addColorStop(0,'#070b09');bg.addColorStop(.55,'#111914');bg.addColorStop(1,'#050806');x.fillStyle=bg;x.fillRect(0,0,W,H);
    camX+=(px-camX)*.12;camY+=(py-camY)*.12;
-   const minX=Math.floor(camX-10),maxX=Math.ceil(camX+10),minY=Math.floor(camY-8),maxY=Math.ceil(camY+8);
-   for(let yy=minY;yy<maxY;yy++)for(let xx=minX;xx<maxX;xx++){if(xx<0||yy<0||xx>=P.map.width||yy>=P.map.height)continue;tile(xx,yy,(xx+yy)%2?'#18221d':'#1b2620')}
+   const minX=Math.floor(camX-11),maxX=Math.ceil(camX+11),minY=Math.floor(camY-9),maxY=Math.ceil(camY+9);
+   for(let yy=minY;yy<maxY;yy++)for(let xx=minX;xx<maxX;xx++){if(xx<0||yy<0||xx>=P.map.width||yy>=P.map.height)continue;
+     const base=(xx+yy)%2?'#17211c':'#1b2720';tile(xx,yy,base);
+   }
+   const floors=P.objects.filter(o=>o.type==='floor');
+   for(const f of floors){const a=iso(f.x-f.w/2,f.y-f.h/2),b=iso(f.x+f.w/2,f.y-f.h/2),cc=iso(f.x+f.w/2,f.y+f.h/2),e=iso(f.x-f.w/2,f.y+f.h/2);poly([a,b,cc,e],f.name&&f.name.includes('UTI')?'#202b25':'#1c2822','#33423a')}
    const objs=P.objects.filter(o=>!o.collected&&!o.dead&&o.type!=='floor').slice().sort((a,b)=>(a.x+a.y)-(b.x+b.y));
    for(const o of objs)cube(o);
-   const pp=iso(px,py),ph=s*.75;x.fillStyle='#0a0d0b55';x.beginPath();x.ellipse(pp.x,pp.y+4,12,5,0,0,Math.PI*2);x.fill();x.fillStyle='#b9cec0';x.beginPath();x.arc(pp.x,pp.y-ph*.35,9,0,Math.PI*2);x.fill();x.fillRect(pp.x-7,pp.y-ph*.28,14,18);
+   // Light pools: hospital lamps illuminate the floor around them.
+   for(const l of P.objects.filter(o=>o.type==='lamp'&&!o.collected)){const q=iso(l.x,l.y),r=(l.radius||4)*s*.65;const g=x.createRadialGradient(q.x,q.y,0,q.x,q.y,r);g.addColorStop(0,'rgba(232,214,150,.22)');g.addColorStop(.45,'rgba(188,177,125,.08)');g.addColorStop(1,'rgba(0,0,0,0)');x.fillStyle=g;x.fillRect(q.x-r,q.y-r,r*2,r*2)}
+   const pp=iso(px,py),ph=s*.75;
+   x.fillStyle='rgba(0,0,0,.42)';x.beginPath();x.ellipse(pp.x,pp.y+5,15,6,0,0,Math.PI*2);x.fill();
+   const pg=x.createRadialGradient(pp.x,pp.y-ph*.55,1,pp.x,pp.y-ph*.55,24);pg.addColorStop(0,'#d8eee1');pg.addColorStop(1,'#799687');x.fillStyle=pg;x.beginPath();x.arc(pp.x,pp.y-ph*.35,9,0,Math.PI*2);x.fill();x.fillRect(pp.x-7,pp.y-ph*.28,14,18);
+   // Subtle vignette for a more cinematic mobile presentation.
+   const v=x.createRadialGradient(W/2,H/2,Math.min(W,H)*.22,W/2,H/2,Math.max(W,H)*.72);v.addColorStop(0,'rgba(0,0,0,0)');v.addColorStop(1,'rgba(0,0,0,.55)');x.fillStyle=v;x.fillRect(0,0,W,H);
  }
  function frame(now){const dt=Math.min(.04,(now-last)/1000);last=now;if(!dialogueOpen){move(dt);updateEnemies(dt)}document.getElementById('hp').style.width=hp+'%';draw();if(hp<=0)say('Você caiu. Recomece o capítulo.');requestAnimationFrame(frame)}
+ let intro=document.getElementById('intro'); if(intro.textContent.trim()){intro.style.display='block';setTimeout(()=>intro.style.display='none',4200)}
  requestAnimationFrame(frame);
  const J=document.getElementById('joy'),S=document.getElementById('stick');let jid=null;
  function jm(e){const r=J.getBoundingClientRect();let dx=e.clientX-r.left-r.width/2,dy=e.clientY-r.top-r.height/2,l=Math.hypot(dx,dy),m=42;if(l>m){dx*=m/l;dy*=m/l}joy.x=dx/m;joy.y=dy/m;S.style.transform='translate('+dx+'px,'+dy+'px)'}
@@ -717,6 +758,7 @@ document.addEventListener('fullscreenchange',()=>{const fs=!!document.fullscreen
 
 canvas.addEventListener('pointerdown',e=>{
  if(e.pointerType==='touch'&&e.isPrimary===false)return;
+ if(placingType){placeAtScreen(placingType,e.offsetX,e.offsetY);return}
  pointerId=e.pointerId;canvas.setPointerCapture(pointerId);
  const p=worldFromScreen(e.offsetX,e.offsetY),o=objectAt(p.x,p.y);
  if(o){select(o.id);pushHistory();dragging=o;dragOffset={x:p.x-o.x,y:p.y-o.y}}else{selectedId=null;renderProps();draw()}
@@ -761,37 +803,57 @@ $('addEnding').onclick=()=>{project.story.endings.push({title:'Novo final',text:
 $('gpApply').onclick=()=>{pushHistory();project.gameplay.health=Number($('gpHealth').value)||100;project.gameplay.stamina=Number($('gpStamina').value)||100;project.gameplay.attackDamage=Number($('gpAttack').value)||35;project.gameplay.enemyDamage=Number($('gpEnemyDamage').value)||15;project.gameplay.interactionDistance=Number($('gpDistance').value)||1.5;project.settings.quality=$('gpQuality').value;$('gameplayModal').classList.remove('open');markDirty();toast('Gameplay salvo.')};
 $('gpCancel').onclick=()=>{$('gameplayModal').classList.remove('open')};
 
+let placingType=null;
+let mobileBuildMode='assets';
+function addPrefab(kind){
+ pushHistory();
+ const sets={
+  reception:[['floor',18,10,{w:10,h:5,name:'Recepção'}],['desk',18,9,{w:2.5,h:1,name:'Balcão'}],['chair',16,11,{name:'Cadeira'}],['chair',20,11,{name:'Cadeira'}],['lamp',18,11,{name:'Luz'}],['door',18,12,{name:'Entrada'}]],
+  ward:[['floor',7,14,{w:8,h:6,name:'Enfermaria'}],['bed',5,13,{name:'Leito 01'}],['bed',9,13,{name:'Leito 02'}],['bed',5,17,{name:'Leito 03'}],['bed',9,17,{name:'Leito 04'}],['lamp',7,15,{name:'Luz'}]],
+  icu:[['floor',19,17,{w:9,h:5,name:'UTI'}],['bed',17,16,{name:'UTI 01'}],['bed',21,16,{name:'UTI 02'}],['generator',23,19,{name:'Painel UTI'}],['lamp',19,18,{name:'Luz UTI'}]],
+  corridor:[['floor',18,6,{w:15,h:3,name:'Corredor'}],['door',14,6,{name:'Porta A'}],['door',22,6,{name:'Porta B'}],['lamp',18,6,{name:'Luz'}],['lamp',26,6,{name:'Luz 2'}]],
+  horror:[['blood',18,8,{w:2,h:1.2,name:'Sangue'}],['corpse',21,8,{name:'Cadáver'}],['spore',24,8,{name:'Esporos'}],['enemy',22,11,{name:'Infectado'}],['lamp',20,10,{name:'Luz falhando'}]]
+ };
+ const items=sets[kind]||[];let ox=0,oy=0;
+ const center=worldFromScreen(canvas.clientWidth/2,canvas.clientHeight/2);ox=center.x-18;oy=center.y-10;
+ for(const [type,x,y,extra] of items){project.objects.push(obj(type,x+ox,y+oy,extra))}
+ renderAll();draw();markDirty();toast('Sala pronta adicionada. Você pode tocar e ajustar cada objeto.');
+}
+function renderMobilePrefabGrid(){
+ $('mobilePrefabGrid').innerHTML=`<button data-prefab="reception">🏥 Recepção</button><button data-prefab="ward">🛏 Enfermaria</button><button data-prefab="icu">❤️ UTI</button><button data-prefab="corridor">🚪 Corredor</button><button data-prefab="horror">☠️ Cena de horror</button><button id="addHospital">🏨 Hospital base</button>`;
+ $('mobilePrefabGrid').querySelectorAll('[data-prefab]').forEach(b=>b.onclick=()=>addPrefab(b.dataset.prefab));
+ $('addHospital').onclick=()=>{addPrefab('reception');addPrefab('ward');addPrefab('icu');toast('Base do hospital criada.');};
+}
 function renderMobileAssetGrid(){
  const box=$('mobileAssetGrid');let out='';
  for(const c of ASSETS)for(const a of c.items)out+=`<button data-type="${a[0]}">${a[1]}<small>${a[2]}</small></button>`;
- box.innerHTML=out;box.querySelectorAll('button').forEach(b=>b.onclick=()=>{place(b.dataset.type);$('mobileBuildSheet').classList.remove('open');openMobileInspector()})
+ box.innerHTML=out;
+ box.querySelectorAll('button').forEach(b=>b.onclick=()=>{
+   placingType=b.dataset.type; document.body.classList.add('placing');
+   $('mobileBuildSheet').classList.remove('open');
+   toast('Agora toque no lugar do cenário onde quer colocar.');
+ });
 }
-function openMobileInspector(){
- const o=selected();if(!o)return;
- $('mobileInspectorTitle').textContent=o.name||o.type;
- $('mobileQuickProps').innerHTML=`<div class="full"><label>NOME</label><input id="mqName" value="${escapeHtml(o.name||'')}"></div>
- <div><label>X</label><input id="mqX" type="number" step=".1" value="${o.x}"></div><div><label>Y</label><input id="mqY" type="number" step=".1" value="${o.y}"></div>
- <div><label>LARGURA</label><input id="mqW" type="number" step=".1" value="${o.w}"></div><div><label>ALTURA</label><input id="mqH" type="number" step=".1" value="${o.h}"></div>
- <div class="full"><label><input id="mqSolid" type="checkbox" ${o.solid?'checked':''}> COLISÃO</label></div>
- <div class="full"><label><input id="mqInteractive" type="checkbox" ${o.interactive?'checked':''}> INTERAÇÃO</label></div>`;
- ['Name','X','Y','W','H'].forEach(k=>{const id='mq'+k;$(id).onchange=()=>{pushHistory();o[{Name:'name',X:'x',Y:'y',W:'w',H:'h'}[k]]=(k==='Name'?$(id).value:Number($(id).value));renderProps();renderAssets();draw();markDirty();$('mobileInspectorTitle').textContent=o.name||o.type}});
- $('mqSolid').onchange=()=>{pushHistory();o.solid=$('mqSolid').checked;renderProps();draw();markDirty()};
- $('mqInteractive').onchange=()=>{pushHistory();o.interactive=$('mqInteractive').checked;renderProps();draw();markDirty()};
- $('mobileInspector').classList.add('open')
+function placeAtScreen(type,sx,sy){
+ pushHistory();const p=worldFromScreen(sx,sy);
+ const o=obj(type,Math.max(.5,Math.round(p.x*2)/2),Math.max(.5,Math.round(p.y*2)/2));
+ project.objects.push(o);selectedId=o.id;placingType=null;document.body.classList.remove('placing');renderAll();draw();openMobileInspector();toast('Objeto criado. Arraste para ajustar.');
 }
 $('closeBuild').onclick=()=>$('mobileBuildSheet').classList.remove('open');
 $('closeInspector').onclick=()=>$('mobileInspector').classList.remove('open');
 $('quickDelete').onclick=()=>{deleteSelected();$('mobileInspector').classList.remove('open')};
 $('quickDuplicate').onclick=()=>{const o=selected();if(!o)return;pushHistory();const n=clone(o);n.id=uid();n.x+=.7;n.y+=.7;n.name=o.name+' (cópia)';project.objects.push(n);selectedId=n.id;renderAll();draw();openMobileInspector()};
-$('dockBuild').onclick=()=>{$('mobileInspector').classList.remove('open');$('mobileBuildSheet').classList.toggle('open')};
+$('dockBuild').onclick=()=>{$('mobileInspector').classList.remove('open');$('mobileBuildSheet').classList.toggle('open');mobileBuildMode='assets';$('mobilePrefabGrid').style.display='grid';$('mobileAssetGrid').style.display='grid'};
 $('dockStory').onclick=openStory;
 $('dockGameplay').onclick=openGameplay;
 $('dockTest').onclick=()=>$('testBtn').click();
 $('dockSave').onclick=()=>$('saveBtn').click();
-renderMobileAssetGrid();
+$('prefabMode').onclick=()=>{$('mobilePrefabGrid').style.display='grid';$('mobileAssetGrid').style.display='none';mobileBuildMode='prefab'};
+$('assetMode').onclick=()=>{$('mobilePrefabGrid').style.display='none';$('mobileAssetGrid').style.display='grid';mobileBuildMode='assets'};
+renderMobilePrefabGrid();renderMobileAssetGrid();
 
 if(window.matchMedia('(max-width:650px)').matches){
- canvas.addEventListener('pointerup',()=>{setTimeout(()=>{if(selectedId)openMobileInspector()},20)});
+ canvas.addEventListener('pointerup',()=>{setTimeout(()=>{if(selectedId&&!placingType)openMobileInspector()},20)});
 }
 </script>
 
