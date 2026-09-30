@@ -3,25 +3,94 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
-<title>O HOSPITAL — Editor</title>
 <meta name="theme-color" content="#0b0f0d">
-<meta name="mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<link rel="manifest" href="manifest.json">
-<link rel="stylesheet" href="css/styles.css">
+<title>O HOSPITAL — Editor Mobile V2</title>
+<style>
+:root{
+ --bg:#080c0a;--panel:#101613;--panel2:#17201b;--panel3:#1d2922;--line:#2e3b34;
+ --text:#e8eee9;--muted:#91a097;--accent:#a9c8b4;--accent2:#718d7c;
+ --danger:#b96f6f;--warn:#c8ad72;--blue:#83afd1;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;width:100%;height:100%;overflow:hidden;background:var(--bg);color:var(--text);font-family:system-ui,-apple-system,Segoe UI,sans-serif}
+body{overscroll-behavior:none}
+button,input,select,textarea{font:inherit}
+button{color:var(--text);background:#1a241f;border:1px solid #35433b;border-radius:10px;padding:10px;touch-action:manipulation}
+button:active{transform:scale(.98);background:#26342c}
+button.primary{background:var(--accent2);color:#07100a;border-color:#9db9a7;font-weight:800}
+button.danger{border-color:#694444;color:#efb0b0}
+button.ghost{background:transparent}
+button:disabled{opacity:.45;pointer-events:none}
+#app{height:100dvh;display:flex;flex-direction:column}
+#top{height:56px;min-height:56px;display:flex;align-items:center;gap:6px;padding:6px 8px;background:#0c120f;border-bottom:1px solid var(--line);z-index:30;padding-top:max(6px,env(safe-area-inset-top))}
+#brand{font-weight:900;letter-spacing:.04em;font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:190px;margin-right:auto}
+.topbtn{font-size:11px;padding:8px 9px;white-space:nowrap}
+#workspace{min-height:0;flex:1;display:flex;position:relative}
+#left,#right{background:var(--panel);overflow:auto;border-color:var(--line);z-index:10}
+#left{width:225px;border-right:1px solid var(--line)}
+#right{width:245px;border-left:1px solid var(--line)}
+#stage{min-width:0;flex:1;position:relative;background:#070a08;overflow:hidden;touch-action:none}
+#canvas{position:absolute;inset:0;width:100%;height:100%;touch-action:none}
+.sectionTitle{font-size:10px;text-transform:uppercase;color:var(--muted);letter-spacing:.11em;padding:11px 11px 6px}
+.tabs{display:flex;gap:4px;padding:6px;position:sticky;top:0;background:var(--panel);z-index:2}
+.tab{flex:1;font-size:10px;padding:8px 4px}.tab.active{background:#29372f;border-color:#52675a}
+#search{margin:4px 8px;width:calc(100% - 16px);background:#0b110e;border:1px solid var(--line);color:var(--text);border-radius:8px;padding:9px}
+.asset{display:flex;align-items:center;gap:8px;width:calc(100% - 16px);margin:4px 8px;text-align:left;padding:8px;font-size:11px}
+.asset .ico{width:30px;height:30px;border-radius:7px;display:grid;place-items:center;background:#202c26;font-size:17px;flex:0 0 auto}
+.asset small{display:block;color:var(--muted);font-size:9px;margin-top:2px}
+#rightContent{padding-bottom:45px}.prop{padding:6px 10px}.prop label{display:block;font-size:9px;color:var(--muted);margin-bottom:4px}
+.prop input,.prop select,.prop textarea,.metaInput{width:100%;background:#0a100d;border:1px solid #344139;color:var(--text);border-radius:8px;padding:8px}
+.prop textarea{min-height:100px;resize:vertical;font-family:ui-monospace,SFMono-Regular,monospace;font-size:11px}
+.row{display:flex;gap:6px}.row>*{flex:1}.check{display:flex;align-items:center;gap:7px;font-size:11px}.check input{width:auto}
+.empty{padding:25px 14px;color:var(--muted);font-size:11px;line-height:1.55}
+#bottom{height:52px;min-height:52px;background:#0c120f;border-top:1px solid var(--line);display:flex;align-items:center;gap:5px;padding:5px 7px;padding-bottom:max(5px,env(safe-area-inset-bottom));z-index:30}
+#status{font-size:10px;color:var(--muted);margin-right:auto;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0}
+.bottomBtn{font-size:10px;padding:8px 7px}
+#toast{position:fixed;z-index:1000;left:50%;bottom:68px;transform:translateX(-50%);background:#edf3ee;color:#0a100c;padding:9px 13px;border-radius:9px;font-size:12px;display:none;max-width:90vw;text-align:center;box-shadow:0 6px 25px #0008}
+#help,#mini{position:absolute;top:9px;background:#0b110dcc;border:1px solid #35423b;border-radius:8px;padding:7px;font-size:9px;color:#b7c3bc;pointer-events:none}
+#help{left:9px}.helpHidden{display:none!important}#mini{right:9px}
+#stageTools{position:absolute;right:9px;bottom:10px;display:flex;flex-direction:column;gap:5px;z-index:5}
+.stageBtn{width:40px;height:40px;padding:0;font-size:16px;background:#101713dd}
+#coverPreview{width:100%;height:115px;object-fit:cover;border-radius:9px;border:1px solid var(--line);background:#0a0f0c;display:none}
+#coverPlaceholder{height:115px;border:1px dashed #405047;border-radius:9px;display:grid;place-items:center;color:var(--muted);font-size:11px;text-align:center;padding:10px}
+.modal{position:fixed;inset:0;background:#000b;z-index:500;display:none;align-items:center;justify-content:center;padding:12px}
+.modal.open{display:flex}
+.dialog{width:min(780px,96vw);max-height:94dvh;overflow:auto;background:#111814;border:1px solid #39483f;border-radius:14px;padding:14px;box-shadow:0 18px 60px #000b}
+.dialog h2{font-size:16px;margin:0 0 7px}.dialog h3{font-size:12px;margin:14px 0 7px}.dialog p{font-size:11px;color:#aeb9b2;line-height:1.5}
+.dialog .actions{display:flex;gap:6px;margin-top:10px}.dialog .actions>*{flex:1}
+.code{width:100%;min-height:280px;background:#080d0a;color:#d7e5da;border:1px solid #344139;border-radius:9px;padding:10px;font:11px/1.45 ui-monospace,SFMono-Regular,monospace}
+#testFrame{width:100%;height:min(72dvh,650px);border:1px solid #35423b;border-radius:10px;background:#000}
+.metaGrid{display:grid;grid-template-columns:1fr 1fr;gap:7px}.metaGrid .full{grid-column:1/-1}
+.fileDrop{border:1px dashed #46584d;border-radius:9px;padding:10px;text-align:center;color:var(--muted);font-size:10px}
+.notice{padding:9px;border-radius:9px;background:#162019;border:1px solid #314239;color:#b8c6bd;font-size:10px;line-height:1.45}
+.badge{display:inline-block;padding:3px 6px;border-radius:99px;background:#25332b;color:#b9d2c0;font-size:9px}
+@media(max-width:850px){#left{width:178px}#right{width:215px}}
+@media(max-width:650px){
+ #top{height:52px;min-height:52px}.topbtn{font-size:9px;padding:8px 6px}#brand{font-size:10px;max-width:125px}
+ #left{width:112px}#right{width:188px}.sectionTitle{padding:8px 6px 5px;font-size:8px}
+ .tabs{padding:4px;display:block}.tab{width:100%;margin-bottom:3px;font-size:8px;padding:7px}
+ #search{padding:7px;margin:4px;width:calc(100% - 8px);font-size:10px}
+ .asset{width:calc(100% - 8px);margin:4px;padding:6px;gap:4px;font-size:9px}.asset .ico{width:24px;height:24px;font-size:13px}.asset small{display:none}
+ .prop{padding:5px 7px}.prop label{font-size:8px}.prop input,.prop select{padding:7px;font-size:10px}
+ #bottom{height:50px;min-height:50px}.bottomBtn{font-size:8px;padding:7px 5px}
+ #help{font-size:7px;max-width:52vw}.metaGrid{grid-template-columns:1fr}.metaGrid .full{grid-column:auto}
+}
+body.fullEditor #top,body.fullEditor #bottom,body.fullEditor #left,body.fullEditor #right{display:none}
+body.fullEditor #workspace{height:100dvh}
+body.fullEditor #stageTools{bottom:18px}
+</style>
 </head>
 <body>
 <div id="app">
 <header id="top">
- <div id="brand">🏥 O HOSPITAL · EDITOR</div>
- <span id="projectBadge"></span>
- <button class="topbtn" id="projectBtn">PROJETO</button>
+ <div id="brand">🏥 O HOSPITAL · EDITOR V2</div>
  <button class="topbtn" id="newBtn">NOVO</button>
- <button class="topbtn" id="saveBtn">BAIXAR</button>
- <button class="topbtn" id="loadBtn">UPAR</button>
- <button class="topbtn" id="fullscreenBtn">⛶ TELA CHEIA</button><button class="topbtn success" id="installBtn" style="display:none">📱 INSTALAR</button><button class="topbtn primary" id="testBtn">▶ TESTAR</button>
+ <button class="topbtn" id="projectBtn">PROJETO</button>
+ <button class="topbtn" id="saveBtn">EXPORTAR</button>
+ <button class="topbtn" id="loadBtn">IMPORTAR</button>
+ <button class="topbtn primary" id="testBtn">▶ TESTAR</button>
 </header>
+
 <div id="workspace">
  <aside id="left">
   <div class="tabs">
@@ -29,94 +98,413 @@
    <button class="tab" data-tab="layers">CAMADAS</button>
   </div>
   <input id="search" placeholder="Buscar recurso...">
-  <button id="extensionsBtn" class="asset warn" style="margin-top:7px"><span class="ico">🧩</span><span><b>CRIAR / EXTENSÕES</b><small>Novo item, estrutura ou função</small></span></button><div id="leftContent"></div>
+  <div id="leftContent"></div>
  </aside>
  <main id="stage">
   <canvas id="canvas"></canvas>
-  <div id="help">Toque no mapa para selecionar. Arraste para mover. Use +/− para zoom.</div>
+  <div id="help">Toque para selecionar • arraste para mover • pinça/zoom para aproximar</div>
   <div id="mini">MAPA · <span id="coords">0,0</span></div>
+  <div id="stageTools">
+   <button class="stageBtn" id="fitBtn" title="Enquadrar">⌗</button>
+   <button class="stageBtn" id="stageZoomIn">＋</button>
+   <button class="stageBtn" id="stageZoomOut">−</button>
+   <button class="stageBtn" id="fullscreenBtn" title="Tela cheia">⛶</button>
+  </div>
  </main>
  <aside id="right">
   <div class="sectionTitle">PROPRIEDADES</div>
   <div id="rightContent"></div>
  </aside>
 </div>
+
 <footer id="bottom">
- <div id="status">Projeto: Capítulo 1</div>
- <button class="bottomBtn" id="zoomOut">−</button>
- <button class="bottomBtn" id="zoomIn">＋</button>
+ <div id="status">Projeto: Capítulo 1 · v1.0.0</div>
  <button class="bottomBtn" id="gridBtn">GRADE</button>
  <button class="bottomBtn" id="undoBtn">↶</button>
  <button class="bottomBtn" id="redoBtn">↷</button>
- <button class="bottomBtn" id="codeBtn">CÓDIGO</button><button class="bottomBtn success" id="gameBtn">🎮 JOGO</button>
+ <button class="bottomBtn" id="codeBtn">CÓDIGO</button>
+ <button class="bottomBtn" id="gameBtn">BAIXAR JOGO</button>
 </footer>
 </div>
 <div id="toast"></div>
-<div id="orientationGate"><div class="rotateIcon">⟳</div><b>VIRE O CELULAR</b><span>O editor foi projetado para funcionar em tela deitada.</span><button id="gateFullscreen">⛶ TELA CHEIA</button></div>
 
+<!-- Projeto -->
 <div class="modal" id="projectModal">
  <div class="dialog">
-  <h2>📦 Configurações do projeto</h2>
-  <p>Estas informações acompanham o projeto e também aparecem no jogo exportado.</p>
-  <div class="prop"><label>NOME DO JOGO</label><input id="metaName" placeholder="O Hospital — Capítulo 1"></div>
-  <div class="prop row"><div><label>VERSÃO DO JOGO</label><input id="metaVersion" placeholder="1.0.0"></div><div><label>VERSÃO DO EDITOR</label><input value="3.1" disabled></div></div>
-  <div class="prop"><label>DESCRIÇÃO</label><textarea id="metaDescription" placeholder="Descrição do capítulo/projeto..."></textarea></div>
-  <div class="prop"><label>CAPA / ÍCONE</label><div class="coverBox"><img id="coverPreview" class="coverPreview" alt="Capa"><div><input id="coverInput" type="file" accept="image/*" hidden><label id="fileLabel" for="coverInput">📷 ESCOLHER FOTO</label><div style="font-size:9px;color:#91a097;margin-top:6px">A imagem fica dentro do arquivo do projeto.</div></div></div></div>
-  <div class="prop"><div class="check"><input id="autoSave" type="checkbox"> Salvar rascunho automaticamente neste aparelho</div></div>
-  <div class="prop row"><button id="projectClose">FECHAR</button><button class="primary" id="projectApply">SALVAR CONFIGURAÇÕES</button></div>
-  <hr style="border-color:#2d3933;border-width:1px 0 0;margin:12px 0">
-  <div class="prop row"><button id="projectDownload">⬇ PROJETO EDITÁVEL</button><button id="gameDownload" class="success">🎮 BAIXAR JOGO</button></div>
-  <div class="prop row"><button id="restoreDraft">♻ RESTAURAR RASCUNHO</button><button id="clearDraft" class="danger">APAGAR RASCUNHO</button></div>
+  <h2>📦 Configuração do projeto</h2>
+  <p>Estas informações viajam junto no arquivo exportado. O editor não envia nem salva seu projeto em servidor.</p>
+  <div class="metaGrid">
+   <div class="prop"><label>NOME DO JOGO</label><input id="metaName" class="metaInput"></div>
+   <div class="prop"><label>VERSÃO DO APP / PROJETO</label><input id="metaVersion" class="metaInput" placeholder="1.0.0"></div>
+   <div class="prop full"><label>DESCRIÇÃO</label><input id="metaDescription" class="metaInput" placeholder="Descrição curta do projeto"></div>
+   <div class="prop full"><label>CAPA / FOTO</label><input id="coverInput" type="file" accept="image/*" capture="environment"></div>
+   <div class="prop full"><img id="coverPreview"><div id="coverPlaceholder">📷 Nenhuma capa selecionada<br>Escolha uma imagem do celular.</div></div>
+  </div>
+  <div class="notice">💾 <b>Fluxo recomendado:</b> exporte o projeto depois de mudanças importantes. Para continuar outro dia, importe o mesmo arquivo e siga editando. O arquivo contém mapa, objetos, configurações, código e capa.</div>
+  <div class="actions"><button id="projectCancel">FECHAR</button><button class="primary" id="projectApply">APLICAR</button></div>
  </div>
 </div>
+
+<!-- Código -->
 <div class="modal" id="codeModal">
  <div class="dialog">
-  <h2>⚙ Código global do projeto</h2>
-  <p>Use isto para regras que não cabem nos componentes visuais. O código fica salvo dentro do projeto.</p>
-  <textarea id="globalCode" class="code"></textarea>
-  <div class="row"><button id="codeCancel">CANCELAR</button><button class="primary" id="codeApply">APLICAR</button></div>
+  <h2>⚙ Código global</h2>
+  <p>JavaScript opcional para lógica do jogo. Ele fica dentro do projeto exportado.</p>
+  <textarea id="globalCode" class="code" spellcheck="false"></textarea>
+  <div class="actions"><button id="codeCancel">CANCELAR</button><button class="primary" id="codeApply">APLICAR</button></div>
  </div>
 </div>
 
-<div class="modal" id="extensionModal">
+<!-- Exportações -->
+<div class="modal" id="exportModal">
  <div class="dialog">
-  <h2>🧩 Fábrica de extensões</h2>
-  <p>Crie recursos próprios sem mexer diretamente na estrutura interna do editor. O editor valida IDs, dimensões e sintaxe antes de adicionar.</p>
-  <div class="tabs" style="position:static;background:transparent;padding:0 0 8px"><button class="tab active" data-exttab="asset">NOVO RECURSO</button><button class="tab" data-exttab="function">NOVA FUNÇÃO</button><button class="tab" data-exttab="check">VERIFICAR</button></div>
-  <div id="extAssetPane">
-   <div class="prop"><label>TIPO DO RECURSO</label><select id="extKind"><option value="item">ITEM / OBJETO</option><option value="structure">ESTRUTURA</option><option value="gameplay">GAMEPLAY</option></select></div>
-   <div class="prop row"><div><label>ID TÉCNICO</label><input id="extId" placeholder="porta_secreta"></div><div><label>ÍCONE</label><input id="extIcon" value="🧩"></div></div>
-   <div class="prop"><label>NOME VISÍVEL</label><input id="extName" placeholder="Porta Secreta"></div>
-   <div class="prop"><label>DESCRIÇÃO</label><input id="extDesc" placeholder="Objeto criado pelo usuário"></div>
-   <div class="prop row"><div><label>LARGURA</label><input id="extW" type="number" step=".1" value="1"></div><div><label>ALTURA</label><input id="extH" type="number" step=".1" value="1"></div></div>
-   <div class="extensionGrid prop"><label class="check"><input id="extSolid" type="checkbox"> Colisão</label><label class="check"><input id="extInteractive" type="checkbox" checked> Interativo</label><label class="check"><input id="extLight" type="checkbox"> Emite luz</label><label class="check"><input id="extUnique" type="checkbox"> Único no mapa</label></div>
-   <div class="prop"><label>COR / VISUAL</label><input id="extColor" value="#59645d"></div>
-   <div class="prop"><label>CÓDIGO AO INTERAGIR (opcional)</label><textarea id="extCode" class="code codeSmall" placeholder="// game.setFlag('porta_aberta', true);
-// game.message('Funcionou!');"></textarea></div>
-   <div class="prop row"><button id="extCancel">FECHAR</button><button class="primary" id="extAdd">ADICIONAR RECURSO</button></div>
+  <h2>⬇ Exportar projeto</h2>
+  <p>Escolha o formato que deseja guardar no celular.</p>
+  <div class="actions">
+   <button id="exportProject">📦 Projeto<br><small>.ohospital.json</small></button>
+   <button id="exportCode">🧩 Código<br><small>.js + dados</small></button>
+   <button class="primary" id="exportGame">🎮 Jogo<br><small>.html standalone</small></button>
   </div>
-  <div id="extFunctionPane" style="display:none">
-   <div class="prop"><label>ID DA FUNÇÃO</label><input id="fnId" placeholder="abrir_porta"></div>
-   <div class="prop"><label>NOME</label><input id="fnName" placeholder="Abrir porta"></div>
-   <div class="prop"><label>CÓDIGO DA FUNÇÃO</label><textarea id="fnCode" class="code codeSmall" placeholder="// Disponível como game.functions.abrir_porta(args)
-// game.openDoor(args.id);"></textarea></div>
-   <div class="prop"><button class="primary" id="fnAdd">ADICIONAR FUNÇÃO</button></div>
-  </div>
-  <div id="extCheckPane" style="display:none"><div id="validationBox" class="validation">Clique em VERIFICAR para analisar o projeto.</div><div class="prop"><button id="repairBtn">🛠 REPARAR E NORMALIZAR PROJETO</button></div></div>
+  <div class="notice" style="margin-top:9px">O <b>Projeto</b> é o formato principal para continuar editando. O <b>Jogo</b> gera uma página independente para testar/abrir no navegador. O <b>Código</b> serve como cópia legível dos dados e lógica.</div>
+  <div class="actions"><button id="exportClose">FECHAR</button></div>
  </div>
 </div>
+
+<!-- Teste -->
 <div class="modal" id="testModal">
  <div class="dialog">
-  <h2>▶ Teste do projeto</h2>
-  <p>O modo de teste usa os mesmos dados do mapa. Esta primeira versão já permite andar, colidir com paredes e interagir com portas/objetos configurados.</p>
+  <h2>▶ Teste do jogo</h2>
+  <p>O teste roda em uma página isolada e usa os dados atuais do projeto.</p>
   <iframe id="testFrame" sandbox="allow-scripts"></iframe>
-  <button id="testClose">VOLTAR AO EDITOR</button>
+  <div class="actions"><button id="testClose">VOLTAR AO EDITOR</button><button class="primary" id="testNewTab">ABRIR JOGO</button></div>
  </div>
 </div>
 
-<input type="file" id="fileInput" accept=".json,application/json" hidden>
+<input type="file" id="fileInput" accept=".json,.ohospital.json,application/json" hidden>
 
-<script src="js/app.js" defer></script>
+<script>
+'use strict';
+const ASSETS=[
+ {cat:'AMBIENTE',items:[
+  ['wall','🧱','Parede','Estrutura sólida'],
+  ['door','🚪','Porta','Porta interativa'],
+  ['window','🪟','Janela','Janela decorativa'],
+  ['floor','⬛','Piso','Piso hospitalar']
+ ]},
+ {cat:'MÓVEIS',items:[
+  ['bed','🛏️','Cama','Cama hospitalar'],
+  ['stretcher','🛌','Maca','Maca hospitalar'],
+  ['desk','🗃️','Mesa/Balcão','Mesa de recepção'],
+  ['chair','🪑','Cadeira','Assento'],
+  ['locker','🗄️','Armário','Armário com colisão'],
+  ['shelf','📚','Estante','Estante de suprimentos'],
+  ['crate','📦','Caixa','Caixa/entulho'],
+  ['generator','⚡','Gerador','Gerador de energia']
+ ]},
+ {cat:'DECORAÇÃO',items:[
+  ['lamp','💡','Lâmpada','Fonte de luz'],
+  ['blood','🩸','Sangue','Mancha ambiental'],
+  ['corpse','☠️','Cadáver','Corpo de cenário'],
+  ['spore','🍄','Esporos','Colônia/fungo'],
+  ['trash','🗑️','Lixo','Decoração'],
+  ['paper','📄','Papel','Documento/nota']
+ ]},
+ {cat:'GAMEPLAY',items:[
+  ['player','🧍','Jogador','Ponto inicial'],
+  ['enemy','🧟','Infectado','Inimigo configurável'],
+  ['item','🔑','Item','Chave/cartão/item'],
+  ['weapon','🔪','Arma','Faca/arma'],
+  ['safe','🔐','Cofre','Puzzle de código'],
+  ['trigger','⚙️','Evento','Área/evento automático']
+ ]}
+];
+const templates={
+ wall:{w:1,h:1,solid:true},
+ door:{w:1,h:.35,solid:true,open:false,locked:false,requires:''},
+ window:{w:1,h:.15,solid:true},
+ floor:{w:1,h:1,solid:false},
+ bed:{w:2,h:1,solid:true,interactive:true,message:'Uma cama hospitalar abandonada.'},
+ stretcher:{w:2,h:.8,solid:true,interactive:true,message:'Uma maca vazia.'},
+ desk:{w:2,h:1,solid:true,interactive:false},
+ chair:{w:.7,h:.7,solid:true},
+ locker:{w:1,h:.6,solid:true,interactive:true,hideSpot:true,message:'Um armário antigo.'},
+ shelf:{w:1.8,h:.5,solid:true},
+ crate:{w:1,h:1,solid:true},
+ generator:{w:1.4,h:1.1,solid:true,interactive:true},
+ lamp:{w:.4,h:.4,solid:false,light:true,radius:4,intensity:.8},
+ blood:{w:1,h:.7,solid:false},
+ corpse:{w:1.5,h:.7,solid:false},
+ spore:{w:1,h:1,solid:false},
+ trash:{w:.7,h:.7,solid:true},
+ paper:{w:.5,h:.5,solid:false,interactive:true,message:'Há algo escrito neste papel.'},
+ player:{w:.6,h:.8,solid:true},
+ enemy:{w:.7,h:.8,solid:true,ai:'patrol',speed:1.8,vision:6,hearing:7,damage:15},
+ item:{w:.5,h:.5,solid:false,interactive:true,itemId:'chave',message:'Você encontrou um item.'},
+ weapon:{w:.5,h:.5,solid:false,interactive:true,itemId:'faca',message:'Você encontrou uma arma.'},
+ safe:{w:1,h:.7,solid:true,interactive:true,code:'1409',message:'Um cofre trancado.'},
+ trigger:{w:2,h:2,solid:false,eventType:'enter'}
+};
+const $=id=>document.getElementById(id);
+const canvas=$('canvas'),ctx=canvas.getContext('2d');
+let DPR=1, view={x:0,y:0,zoom:1}, gridOn=true, activeTab='assets';
+let selectedId=null, dragging=null, dragOffset={x:0,y:0}, pointerId=null;
+let undoStack=[],redoStack=[],saveTimer=null,dirty=false;
+let pinch=null;
 
+function uid(){return 'o_'+Date.now().toString(36)+'_'+Math.random().toString(36).slice(2,8)}
+function clone(x){return JSON.parse(JSON.stringify(x))}
+function safeFileName(s){return String(s||'projeto').normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-z0-9 _-]/gi,'_').trim().replace(/\s+/g,'_')||'projeto'}
+function defaultProject(){
+ return {
+  schema:'ohospital-project',schemaVersion:2,version:1,
+  metadata:{name:'O HOSPITAL — Capítulo 1',appVersion:'1.0.0',description:'Projeto criado no Editor Mobile',cover:''},
+  map:{width:37,height:27,tile:48},
+  settings:{grid:true,background:'#111713'},
+  globalCode:`// Código global opcional\n// Exemplo: game.openDoor('porta_uti');`,
+  objects:[
+   obj('floor',8,9,{w:21,h:5,solid:false,name:'Recepção / Arquivo'}),
+   obj('floor',13,1,{w:11,h:7,solid:false,name:'Ala de Emergência'}),
+   obj('floor',4,9,{w:4,h:9,solid:false,name:'Enfermaria'}),
+   obj('floor',29,9,{w:5,h:9,solid:false,name:'Farmácia'}),
+   obj('floor',13,14,{w:11,h:5,solid:false,name:'UTI'}),
+   obj('floor',13,20,{w:11,h:5,solid:false,name:'Manutenção'}),
+   obj('desk',18,10,{w:3,h:1,name:'Balcão da Recepção'}),
+   obj('bed',6,11,{name:'Leito 01'}),obj('bed',6,14,{name:'Leito 02'}),obj('bed',6,17,{name:'Leito 03'}),
+   obj('shelf',30,11,{name:'Prateleira A'}),obj('shelf',32,11,{name:'Prateleira B'}),
+   obj('generator',22,22,{name:'Gerador Principal',interactive:true,message:'O painel do gerador pede uma sequência.'}),
+   obj('safe',27,11,{name:'Cofre de Emergência',code:'1409'}),
+   obj('door',18.5,8,{name:'Porta Corta-Fogo',locked:true,requires:'energia'}),
+   obj('door',8,11,{name:'Porta da Enfermaria'}),
+   obj('door',29,11,{name:'Porta da Farmácia',locked:true,requires:'chave_farmacia'}),
+   obj('door',18,14,{name:'Porta da UTI'}),obj('door',18,19,{name:'Porta da Manutenção'}),
+   obj('player',19,12,{name:'Jogador'}),
+   obj('enemy',24,12,{name:'Infectado — Patrulha',ai:'patrol'}),
+   obj('enemy',10,12,{name:'Infectado — Cego',ai:'hearing',vision:0,hearing:9}),
+   obj('paper',15,4,{name:'Prontuário 237',message:'Registro 237 — algo deu errado durante a evacuação.'}),
+   obj('item',31,14,{name:'Chave da Farmácia',itemId:'chave_farmacia',message:'Você pegou a chave da farmácia.'}),
+   obj('weapon',6,15,{name:'Faca',itemId:'faca',message:'Uma faca útil para defesa silenciosa.'})
+  ]
+ };
+}
+function obj(type,x,y,extra={}){
+ let o={id:uid(),type,x,y,...clone(templates[type]||{}),...extra};
+ o.name=o.name||ASSETS.flatMap(c=>c.items).find(a=>a[0]===type)?.[2]||type;
+ return o;
+}
+let project=defaultProject();
+
+function normalizeProject(p){
+ if(!p || typeof p!=='object') throw Error('Projeto não é um objeto.');
+ if(!Array.isArray(p.objects)||!p.map||typeof p.map.width!=='number'||typeof p.map.height!=='number') throw Error('Estrutura de projeto inválida.');
+ const q=clone(p);
+ q.schema='ohospital-project'; q.schemaVersion=2;
+ q.metadata=q.metadata||{name:q.name||'Projeto importado',appVersion:String(q.version||'1.0.0'),description:'',cover:''};
+ if(!q.metadata.name) q.metadata.name=q.name||'Projeto importado';
+ if(!q.metadata.appVersion) q.metadata.appVersion='1.0.0';
+ q.settings=q.settings||{grid:true,background:'#111713'};
+ q.globalCode=typeof q.globalCode==='string'?q.globalCode:'';
+ q.objects=q.objects.filter(o=>o&&typeof o==='object'&&typeof o.x==='number'&&typeof o.y==='number').map(o=>{
+   const base=templates[o.type]||{};
+   const n={...clone(base),...o}; n.id=n.id||uid(); n.name=n.name||n.type; return n;
+ });
+ q.version=Number(q.version)||1;
+ return q;
+}
+function pushHistory(){
+ undoStack.push(clone(project)); if(undoStack.length>50)undoStack.shift(); redoStack=[]; dirty=true;
+}
+function restore(p){project=normalizeProject(p);selectedId=null;renderAll();draw();markDirty()}
+function undo(){if(!undoStack.length)return toast('Nada para desfazer.');redoStack.push(clone(project));restore(undoStack.pop())}
+function redo(){if(!redoStack.length)return toast('Nada para refazer.');undoStack.push(clone(project));restore(redoStack.pop())}
+function markDirty(){dirty=true;updateStatus()}
+function clearDirty(){dirty=false;updateStatus()}
+function updateStatus(){
+ const m=project.metadata||{}; $('status').textContent=`${m.name||'Sem nome'} · v${m.appVersion||'1.0.0'}${dirty?' · • alterações não exportadas':''}`;
+}
+function resize(){const r=canvas.getBoundingClientRect();DPR=Math.min(devicePixelRatio||1,2);canvas.width=Math.max(1,r.width*DPR);canvas.height=Math.max(1,r.height*DPR);ctx.setTransform(DPR,0,0,DPR,0,0);draw()}
+addEventListener('resize',resize);
+
+function worldFromScreen(sx,sy){return{x:(sx-view.x)/view.zoom/project.map.tile,y:(sy-view.y)/view.zoom/project.map.tile}}
+function screenFromWorld(x,y){return{x:view.x+x*project.map.tile*view.zoom,y:view.y+y*project.map.tile*view.zoom}}
+function fitMap(){
+ const w=canvas.clientWidth,h=canvas.clientHeight,tw=project.map.width*project.map.tile,th=project.map.height*project.map.tile;
+ view.zoom=Math.max(.12,Math.min(4,Math.min(w/tw,h/th)*.9));view.x=(w-tw*view.zoom)/2;view.y=(h-th*view.zoom)/2;draw()
+}
+function objectAt(wx,wy){
+ for(let i=project.objects.length-1;i>=0;i--){const o=project.objects[i];if(wx>=o.x-o.w/2&&wx<=o.x+o.w/2&&wy>=o.y-o.h/2&&wy<=o.y+o.h/2)return o}return null
+}
+function draw(){
+ const w=canvas.clientWidth,h=canvas.clientHeight;ctx.clearRect(0,0,w,h);ctx.fillStyle=project.settings.background||'#111713';ctx.fillRect(0,0,w,h);
+ ctx.save();ctx.translate(view.x,view.y);ctx.scale(view.zoom,view.zoom);const t=project.map.tile;
+ ctx.fillStyle='#151d18';ctx.fillRect(0,0,project.map.width*t,project.map.height*t);
+ if(gridOn){ctx.strokeStyle='#26312b';ctx.lineWidth=1/view.zoom;for(let x=0;x<=project.map.width;x++){ctx.beginPath();ctx.moveTo(x*t,0);ctx.lineTo(x*t,project.map.height*t);ctx.stroke()}for(let y=0;y<=project.map.height;y++){ctx.beginPath();ctx.moveTo(0,y*t);ctx.lineTo(project.map.width*t,y*t);ctx.stroke()}}
+ [...project.objects].sort((a,b)=>(a.y+a.h)-(b.y+b.h)).forEach(o=>drawObj(o,t));ctx.restore()
+}
+function drawObj(o,t){
+ const x=o.x*t,y=o.y*t,w=o.w*t,h=o.h*t,selected=o.id===selectedId;
+ if(o.type==='floor'){ctx.fillStyle=o.name?.includes('UTI')?'#18221e':'#1b2420';ctx.fillRect(x-w/2,y-h/2,w,h);ctx.strokeStyle='#39453f';ctx.strokeRect(x-w/2,y-h/2,w,h);return}
+ const colors={wall:'#68746d',door:o.open?'#718b78':'#493f39',window:'#54645c',bed:'#70847a',stretcher:'#84918a',desk:'#5d665e',chair:'#606b64',locker:'#56635c',shelf:'#53665b',crate:'#665c4f',generator:'#60685f',lamp:'#d5c58b',blood:'#632f31',corpse:'#3e4742',spore:'#6d7d4b',trash:'#4d5751',paper:'#c7c0a6',player:'#9db7aa',enemy:'#8f5c5c',item:'#d2bf65',weapon:'#b5b5ad',safe:'#5b6260',trigger:'#536e86'};
+ ctx.globalAlpha=(o.type==='blood'||o.type==='spore')?.65:1;ctx.fillStyle=colors[o.type]||'#748078';ctx.fillRect(x-w/2,y-h/2,w,h);ctx.globalAlpha=1;
+ ctx.strokeStyle=selected?'#f2d48c':'#222a26';ctx.lineWidth=selected?3:1;ctx.strokeRect(x-w/2,y-h/2,w,h);
+ const icons={door:o.open?'↔':'🚪',bed:'🛏',stretcher:'▱',desk:'▤',chair:'•',locker:'▥',shelf:'▤',crate:'□',generator:'⚡',lamp:'●',corpse:'☠',trash:'×',paper:'▤',player:'●',enemy:'☠',item:'◆',weapon:'⌁',safe:'▣',trigger:'⚙',window:'□'};
+ const icon=icons[o.type];if(icon){ctx.font=Math.max(10,t*.32)+'px sans-serif';ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillStyle='#e7eee9';ctx.fillText(icon,x,y)}
+ if(selected){ctx.setLineDash([5,4]);ctx.strokeStyle='#c7d9cc';ctx.strokeRect(x-w/2-4,y-h/2-4,w+8,h+8);ctx.setLineDash([])}
+}
+
+function iconFor(type){return ASSETS.flatMap(c=>c.items).find(a=>a[0]===type)?.[1]||'◻'}
+function escapeHtml(s){return String(s??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]))}
+function renderAssets(){
+ const q=$('search').value.toLowerCase(),box=$('leftContent');
+ if(activeTab==='layers'){
+  box.innerHTML=project.objects.map(o=>`<button class="asset" data-id="${o.id}"><span class="ico">${iconFor(o.type)}</span><span>${escapeHtml(o.name||o.type)}<small>${o.type} · ${Math.round(o.x)},${Math.round(o.y)}</small></span></button>`).join('')||'<div class="empty">Nenhum objeto no mapa.</div>';
+  box.querySelectorAll('.asset').forEach(b=>b.onclick=()=>select(b.dataset.id));return
+ }
+ let out='';
+ for(const c of ASSETS){const items=c.items.filter(a=>(a[1]+' '+a[2]+' '+a[3]).toLowerCase().includes(q));if(!items.length)continue;out+=`<div class="sectionTitle">${c.cat}</div>`;for(const a of items)out+=`<button class="asset" data-type="${a[0]}"><span class="ico">${a[1]}</span><span><b>${a[2]}</b><small>${a[3]}</small></span></button>`}
+ box.innerHTML=out||'<div class="empty">Nenhum recurso encontrado.</div>';box.querySelectorAll('.asset').forEach(b=>b.onclick=()=>place(b.dataset.type))
+}
+function select(id){selectedId=id;renderProps();draw()}
+function selected(){return project.objects.find(o=>o.id===selectedId)}
+function place(type){
+ pushHistory();const center=worldFromScreen(canvas.clientWidth/2,canvas.clientHeight/2);
+ const o=obj(type,Math.max(.5,Math.round(center.x*2)/2),Math.max(.5,Math.round(center.y*2)/2));project.objects.push(o);selectedId=o.id;renderAll();draw();toast('Recurso colocado no centro. Arraste para posicionar.')
+}
+function deleteSelected(){const o=selected();if(!o)return toast('Selecione um objeto primeiro.');pushHistory();project.objects=project.objects.filter(x=>x.id!==o.id);selectedId=null;renderAll();draw();toast('Objeto removido.')}
+function updateProp(key,value){
+ const o=selected();if(!o)return;
+ if(['x','y','w','h','speed','vision','hearing','damage','radius','intensity'].includes(key))value=Number(value);
+ if(['solid','interactive','open','locked','hideSpot','light'].includes(key))value=!!value;
+ o[key]=value;markDirty();draw();renderAssets()
+}
+function renderProps(){
+ const o=selected();
+ if(!o){$('rightContent').innerHTML='<div class="empty">Selecione um objeto no mapa ou em CAMADAS.<br><br>Você pode alterar nome, posição, tamanho, colisão, interação, IA e código.</div>';return}
+ let html=`<div class="prop"><label>NOME</label><input data-p="name" value="${escapeHtml(o.name)}"></div>
+ <div class="prop row"><div><label>X</label><input data-p="x" type="number" step=".1" value="${o.x}"></div><div><label>Y</label><input data-p="y" type="number" step=".1" value="${o.y}"></div></div>
+ <div class="prop row"><div><label>LARGURA</label><input data-p="w" type="number" min=".05" step=".1" value="${o.w}"></div><div><label>ALTURA</label><input data-p="h" type="number" min=".05" step=".1" value="${o.h}"></div></div>`;
+ if(!['floor','blood','corpse','spore','trigger'].includes(o.type))html+=`<div class="prop"><label>COLISÃO</label><div class="check"><input data-p="solid" type="checkbox" ${o.solid?'checked':''}> Impede passagem</div></div>`;
+ if(['door','bed','stretcher','locker','generator','paper','item','weapon','safe'].includes(o.type))html+=`<div class="prop"><label>INTERAÇÃO</label><div class="check"><input data-p="interactive" type="checkbox" ${o.interactive?'checked':''}> Jogador pode interagir</div></div>`;
+ if(o.type==='door')html+=`<div class="prop"><label>PORTA</label><div class="check"><input data-p="open" type="checkbox" ${o.open?'checked':''}> Aberta</div><div class="check"><input data-p="locked" type="checkbox" ${o.locked?'checked':''}> Trancada</div></div><div class="prop"><label>REQUISITO</label><input data-p="requires" value="${escapeHtml(o.requires||'')}"></div>`;
+ if(o.type==='enemy')html+=`<div class="prop"><label>IA</label><select data-p="ai"><option value="patrol" ${o.ai==='patrol'?'selected':''}>Patrulha</option><option value="chase" ${o.ai==='chase'?'selected':''}>Perseguidor</option><option value="hearing" ${o.ai==='hearing'?'selected':''}>Cego / Audição</option><option value="stalker" ${o.ai==='stalker'?'selected':''}>Stalker</option></select></div><div class="prop row"><div><label>VELOCIDADE</label><input data-p="speed" type="number" step=".1" value="${o.speed||1.8}"></div><div><label>DANO</label><input data-p="damage" type="number" value="${o.damage||15}"></div></div><div class="prop row"><div><label>VISÃO</label><input data-p="vision" type="number" value="${o.vision||0}"></div><div><label>AUDIÇÃO</label><input data-p="hearing" type="number" value="${o.hearing||7}"></div></div>`;
+ if(o.type==='lamp')html+=`<div class="prop row"><div><label>RAIO</label><input data-p="radius" type="number" step=".1" value="${o.radius||4}"></div><div><label>INTENSIDADE</label><input data-p="intensity" type="number" step=".1" value="${o.intensity||.8}"></div></div>`;
+ if(['bed','stretcher','locker','generator','paper','item','weapon','safe'].includes(o.type))html+=`<div class="prop"><label>MENSAGEM / INTERAÇÃO</label><textarea data-p="message">${escapeHtml(o.message||'')}</textarea></div>`;
+ if(['item','weapon'].includes(o.type))html+=`<div class="prop"><label>ID DO ITEM</label><input data-p="itemId" value="${escapeHtml(o.itemId||'')}"></div>`;
+ if(o.type==='safe')html+=`<div class="prop"><label>CÓDIGO</label><input data-p="code" inputmode="numeric" value="${escapeHtml(o.code||'')}"></div>`;
+ html+=`<div class="sectionTitle">CÓDIGO DO OBJETO</div><div class="prop"><textarea data-p="code" placeholder="// Executado ao interagir" spellcheck="false">${escapeHtml(o.code||'')}</textarea></div>
+ <div class="prop row"><button id="duplicate">DUPLICAR</button><button id="delete" class="danger">EXCLUIR</button></div>`;
+ $('rightContent').innerHTML=html;
+ $('rightContent').querySelectorAll('[data-p]').forEach(el=>{
+   el.addEventListener('focus',()=>{if(el.dataset.p!=='name')return});
+   el.addEventListener('change',()=>{pushHistory();updateProp(el.dataset.p,el.type==='checkbox'?el.checked:el.value);renderProps()})
+ });
+ $('delete').onclick=deleteSelected;
+ $('duplicate').onclick=()=>{pushHistory();const n=clone(o);n.id=uid();n.x+=.7;n.y+=.7;n.name=o.name+' (cópia)';project.objects.push(n);selectedId=n.id;renderAll();draw()}
+}
+function renderAll(){renderAssets();renderProps();updateStatus()}
+function toast(msg){$('toast').textContent=msg;$('toast').style.display='block';clearTimeout(window.__toast);window.__toast=setTimeout(()=>$('toast').style.display='none',1900)}
+
+function saveBlob(name,content,type){
+ const blob=new Blob([content],{type}),url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download=name;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),1000)
+}
+function projectForExport(){const p=clone(project);p.exportedAt=new Date().toISOString();return p}
+function exportProjectFile(){
+ const p=projectForExport(),name=safeFileName(p.metadata.name);saveBlob(`${name}_v${safeFileName(p.metadata.appVersion)}.ohospital.json`,JSON.stringify(p,null,2),'application/json');clearDirty();toast('Projeto exportado. Guarde este arquivo para continuar depois.')
+}
+function exportCodeFile(){
+ const p=projectForExport(),base=safeFileName(p.metadata.name);
+ const js=`/* ${p.metadata.name} v${p.metadata.appVersion} — O HOSPITAL Editor */\nconst PROJECT=${JSON.stringify(p,null,2)};\n`;
+ saveBlob(`${base}_codigo.js`,js,'text/javascript');
+ saveBlob(`${base}_dados.json`,JSON.stringify(p,null,2),'application/json');
+ toast('Código e dados exportados.')
+}
+function makeGameHTML(){
+ const data=JSON.stringify(projectForExport()).replace(/</g,'\\u003c');
+ return `<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover"><title>${escapeHtml(project.metadata.name)}</title>
+ <style>html,body{margin:0;height:100%;overflow:hidden;background:#080c0a;color:#e8eee9;font-family:system-ui}canvas{width:100%;height:100%;display:block}#hud{position:fixed;top:10px;left:10px;right:10px;display:flex;justify-content:space-between;background:#080d0dcc;padding:8px;border:1px solid #39463e;border-radius:9px;font-size:11px}#joy{position:fixed;left:16px;bottom:18px;width:126px;height:126px;border-radius:50%;background:#1a241fbb;border:1px solid #758177;touch-action:none}#stick{position:absolute;width:50px;height:50px;left:37px;top:37px;border-radius:50%;background:#aebbb2aa}#use{position:fixed;right:18px;bottom:28px;width:72px;height:72px;border-radius:50%;background:#718d7c;color:#08100b;font-weight:900;border:1px solid #a9c0b0}#msg{position:fixed;left:50%;bottom:120px;transform:translateX(-50%);background:#eef3ef;color:#0a100c;padding:9px 13px;border-radius:9px;display:none;max-width:82vw;text-align:center;font-size:12px}</style></head>
+ <body><canvas id="g"></canvas><div id="hud"><b>${escapeHtml(project.metadata.name)}</b><span>v${escapeHtml(project.metadata.appVersion)}</span></div><div id="joy"><div id="stick"></div></div><button id="use">USAR</button><div id="msg"></div>
+ <script>
+ const P=${data},c=document.getElementById('g'),x=c.getContext('2d');let W,H,d=devicePixelRatio||1;
+ const pl=P.objects.find(o=>o.type==='player')||{x:2,y:2,w:.6,h:.8};let px=pl.x,py=pl.y,joy={x:0,y:0};
+ function rs(){W=innerWidth;H=innerHeight;c.width=W*d;c.height=H*d;x.setTransform(d,0,0,d,0,0)}addEventListener('resize',rs);rs();
+ function solid(b){for(const o of P.objects){if(!o.solid||o.type==='player')continue;if(b.x+pl.w/2>o.x-o.w/2&&b.x-pl.w/2<o.x+o.w/2&&b.y+pl.h/2>o.y-o.h/2&&b.y-pl.h/2<o.y+o.h/2)return true}return false}
+ function say(t){let m=document.getElementById('msg');m.textContent=t;m.style.display='block';clearTimeout(window.__m);window.__m=setTimeout(()=>m.style.display='none',2300)}
+ function draw(){x.clearRect(0,0,W,H);let s=Math.min(W/(P.map.width*P.map.tile),H/(P.map.height*P.map.tile))*.88,t=P.map.tile*s,ox=(W-P.map.width*t)/2,oy=(H-P.map.height*t)/2;x.fillStyle=P.settings.background||'#111713';x.fillRect(0,0,W,H);
+ for(const o of P.objects)if(o.type==='floor'){x.fillStyle=o.name&&o.name.includes('UTI')?'#18221e':'#1b2520';x.fillRect(ox+(o.x-o.w/2)*t,oy+(o.y-o.h/2)*t,o.w*t,o.h*t)}
+ for(const o of P.objects)if(o.type!=='floor'&&o.type!=='player'){let xx=ox+(o.x-o.w/2)*t,yy=oy+(o.y-o.h/2)*t;x.fillStyle=o.type==='wall'?'#68746d':o.type==='door'?(o.open?'#718b78':'#614f45'):o.type==='enemy'?'#8f5c5c':o.type==='bed'?'#70847a':o.type==='safe'?'#5b6260':o.type==='item'?'#d2bf65':o.type==='weapon'?'#b5b5ad':'#59645d';x.fillRect(xx,yy,o.w*t,o.h*t)}
+ x.fillStyle='#dbe8df';x.beginPath();x.arc(ox+px*t,oy+py*t,Math.max(6,t*.22),0,7);x.fill()}
+ function loop(){let speed=.052,dx=joy.x*speed,dy=joy.y*speed,n;if(dx){n={x:px+dx,y:py};if(!solid(n))px=n.x}if(dy){n={x:px,y:py+dy};if(!solid(n))py=n.y}draw();requestAnimationFrame(loop)}loop();
+ const J=document.getElementById('joy'),S=document.getElementById('stick');let jid=null;
+ function jm(e){let r=J.getBoundingClientRect(),dx=e.clientX-r.left-r.width/2,dy=e.clientY-r.top-r.height/2,l=Math.hypot(dx,dy),m=40;if(l>m){dx*=m/l;dy*=m/l}joy.x=dx/m;joy.y=dy/m;S.style.transform='translate('+dx+'px,'+dy+'px)'}
+ J.onpointerdown=e=>{jid=e.pointerId;J.setPointerCapture(jid);jm(e)};J.onpointermove=e=>{if(e.pointerId===jid)jm(e)};J.onpointerup=J.onpointercancel=()=>{jid=null;joy.x=joy.y=0;S.style.transform='translate(0,0)'};
+ document.getElementById('use').onclick=()=>{let best=null,bd=1.35;for(const o of P.objects){let q=Math.hypot(px-o.x,py-o.y);if(o.interactive&&q<bd){best=o;bd=q}}if(best)say(best.message||('Interagiu com '+best.name));};
+ <\/script></body></html>`;
+}
+function exportGame(){const name=safeFileName(project.metadata.name);saveBlob(`${name}_v${safeFileName(project.metadata.appVersion)}.html`,makeGameHTML(),'text/html');toast('Jogo standalone exportado.')}
+function openExport(){ $('exportModal').classList.add('open') }
+
+function openProjectModal(){
+ const m=project.metadata||{};$('metaName').value=m.name||'';$('metaVersion').value=m.appVersion||'1.0.0';$('metaDescription').value=m.description||'';
+ if(m.cover){$('coverPreview').src=m.cover;$('coverPreview').style.display='block';$('coverPlaceholder').style.display='none'}else{$('coverPreview').style.display='none';$('coverPlaceholder').style.display='grid'}
+ $('projectModal').classList.add('open')
+}
+function closeProject(){ $('projectModal').classList.remove('open') }
+$('coverInput').onchange=e=>{const f=e.target.files[0];if(!f)return;if(f.size>6*1024*1024)return toast('Imagem muito grande. Use uma foto de até 6 MB.');const r=new FileReader();r.onload=()=>{$('coverPreview').src=r.result;$('coverPreview').style.display='block';$('coverPlaceholder').style.display='none';$('coverPreview').dataset.newCover=r.result};r.readAsDataURL(f)}
+$('projectApply').onclick=()=>{pushHistory();project.metadata.name=$('metaName').value.trim()||'Projeto sem nome';project.metadata.appVersion=$('metaVersion').value.trim()||'1.0.0';project.metadata.description=$('metaDescription').value.trim();if($('coverPreview').dataset.newCover)project.metadata.cover=$('coverPreview').dataset.newCover;closeProject();renderAll();markDirty();toast('Informações do projeto atualizadas.')}
+$('projectCancel').onclick=closeProject;$('projectBtn').onclick=openProjectModal;
+
+$('saveBtn').onclick=openExport;
+$('exportClose').onclick=()=>$('exportModal').classList.remove('open');
+$('exportProject').onclick=()=>{exportProjectFile();$('exportModal').classList.remove('open')};
+$('exportCode').onclick=()=>{exportCodeFile();$('exportModal').classList.remove('open')};
+$('exportGame').onclick=()=>{exportGame();$('exportModal').classList.remove('open')};
+$('gameBtn').onclick=exportGame;
+
+$('loadBtn').onclick=()=>$('fileInput').click();
+$('fileInput').onchange=e=>{const f=e.target.files[0];if(!f)return;const r=new FileReader();r.onload=()=>{try{const p=normalizeProject(JSON.parse(r.result));undoStack=[];redoStack=[];project=p;selectedId=null;gridOn=p.settings.grid!==false;fitMap();renderAll();clearDirty();toast('Projeto importado com sucesso. Continue de onde parou.')}catch(err){toast('Não foi possível abrir este projeto: arquivo inválido.')}};r.readAsText(f);e.target.value=''};
+
+$('newBtn').onclick=()=>{if(dirty&&!confirm('Há alterações não exportadas. Criar outro projeto mesmo assim?'))return;project=defaultProject();undoStack=[];redoStack=[];selectedId=null;gridOn=true;fitMap();renderAll();clearDirty();toast('Novo projeto criado.')};
+
+$('codeBtn').onclick=()=>{$('globalCode').value=project.globalCode||'';$('codeModal').classList.add('open')};
+$('codeCancel').onclick=()=>$('codeModal').classList.remove('open');
+$('codeApply').onclick=()=>{pushHistory();project.globalCode=$('globalCode').value;$('codeModal').classList.remove('open');markDirty();toast('Código global atualizado.')};
+
+$('testBtn').onclick=()=>{$('testFrame').srcdoc=makeGameHTML();$('testModal').classList.add('open')};
+$('testClose').onclick=()=>{$('testModal').classList.remove('open');$('testFrame').srcdoc=''};
+$('testNewTab').onclick=()=>{const url=URL.createObjectURL(new Blob([makeGameHTML()],{type:'text/html'}));window.open(url,'_blank');setTimeout(()=>URL.revokeObjectURL(url),60000)};
+
+$('gridBtn').onclick=()=>{gridOn=!gridOn;project.settings.grid=gridOn;markDirty();draw()};
+$('undoBtn').onclick=undo;$('redoBtn').onclick=redo;
+$('stageZoomIn').onclick=()=>{view.zoom=Math.min(4,view.zoom*1.15);draw()};
+$('stageZoomOut').onclick=()=>{view.zoom=Math.max(.12,view.zoom/1.15);draw()};
+$('fitBtn').onclick=fitMap;
+
+async function toggleFullscreen(){
+ try{if(!document.fullscreenElement){await document.documentElement.requestFullscreen?.();document.body.classList.add('fullEditor');$('help').classList.add('helpHidden');toast('Editor em tela cheia.')}else{await document.exitFullscreen?.();document.body.classList.remove('fullEditor');$('help').classList.remove('helpHidden')}}catch{document.body.classList.toggle('fullEditor');}
+ setTimeout(resize,120)
+}
+$('fullscreenBtn').onclick=toggleFullscreen;
+document.addEventListener('fullscreenchange',()=>{const fs=!!document.fullscreenElement;document.body.classList.toggle('fullEditor',fs);$('help').classList.toggle('helpHidden',fs);setTimeout(resize,100)});
+
+canvas.addEventListener('pointerdown',e=>{
+ if(e.pointerType==='touch'&&e.isPrimary===false)return;
+ pointerId=e.pointerId;canvas.setPointerCapture(pointerId);
+ const p=worldFromScreen(e.offsetX,e.offsetY),o=objectAt(p.x,p.y);
+ if(o){select(o.id);pushHistory();dragging=o;dragOffset={x:p.x-o.x,y:p.y-o.y}}else{selectedId=null;renderProps();draw()}
+});
+canvas.addEventListener('pointermove',e=>{
+ if(!dragging||e.pointerId!==pointerId)return;const p=worldFromScreen(e.offsetX,e.offsetY);dragging.x=p.x-dragOffset.x;dragging.y=p.y-dragOffset.y;
+ if(gridOn){dragging.x=Math.round(dragging.x*2)/2;dragging.y=Math.round(dragging.y*2)/2}
+ $('coords').textContent=Math.round(p.x)+','+Math.round(p.y);renderProps();draw();markDirty()
+});
+canvas.addEventListener('pointerup',e=>{if(e.pointerId===pointerId){dragging=null;pointerId=null}});
+canvas.addEventListener('pointercancel',()=>{dragging=null;pointerId=null});
+canvas.addEventListener('wheel',e=>{e.preventDefault();view.zoom=Math.max(.12,Math.min(4,view.zoom*(e.deltaY<0?1.08:.92)));draw()},{passive:false});
+
+document.querySelectorAll('.tab').forEach(b=>b.onclick=()=>{activeTab=b.dataset.tab;document.querySelectorAll('.tab').forEach(x=>x.classList.toggle('active',x===b));renderAssets()});
+$('search').oninput=renderAssets;
+window.addEventListener('beforeunload',e=>{if(dirty){e.preventDefault();e.returnValue=''}});
+
+fitMap();renderAll();draw();
+</script>
 </body>
 </html>
