@@ -79,49 +79,56 @@ body.fullEditor #top,body.fullEditor #bottom,body.fullEditor #left,body.fullEdit
 body.fullEditor #workspace{height:100dvh}
 body.fullEditor #stageTools{bottom:18px}
 
-/* ===== V4: camada mobile segura, sem substituir a lógica do editor ===== */
-#mobileBar{display:none}
-@media (max-width:650px){
-  body{overflow:hidden}
-  #app{height:100dvh}
-  #top{padding-left:7px;padding-right:7px;gap:5px}
-  #brand{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-  #top>.topbtn{display:none}
-  #workspace{height:calc(100dvh - 52px - 64px);position:relative}
-  #left,#right{
-    position:absolute;top:0;bottom:0;z-index:20;
-    width:min(86vw,310px);
-    background:#101611;
-    box-shadow:0 0 24px #000b;
-    transition:transform .18s ease;
-  }
-  #left{left:0;transform:translateX(-105%)}
-  #right{right:0;transform:translateX(105%)}
-  body.mobileLeft #left{transform:translateX(0)}
-  body.mobileRight #right{transform:translateX(0)}
-  #stage{width:100%;height:100%}
-  #bottom{display:none}
-  #mobileBar{
-    position:fixed;left:0;right:0;bottom:0;height:64px;z-index:50;
-    display:grid;grid-template-columns:repeat(5,1fr);gap:5px;
-    padding:6px max(6px,env(safe-area-inset-left)) max(6px,env(safe-area-inset-bottom)) max(6px,env(safe-area-inset-right));
-    box-sizing:border-box;background:#0c110eF5;border-top:1px solid #334039;
-  }
-  #mobileBar button{
-    min-width:0;min-height:48px;border:1px solid #3a4940;border-radius:11px;
-    background:#17201a;color:#e8eee9;font-weight:800;font-size:10px;
-    touch-action:manipulation;-webkit-tap-highlight-color:transparent;
-  }
-  #mobileBar button:active{transform:scale(.97);background:#243127}
-  #mobileBar .mPrimary{background:#2b4634;border-color:#6f8e78}
-  #help{bottom:76px;max-width:68vw}
-  #stageTools{right:8px;bottom:78px}
-  .stageBtn{width:44px;height:44px;font-size:18px}
-  #mini{bottom:78px;left:8px}
-  .asset{min-height:52px}
-  .prop input,.prop select{min-height:42px}
-  .dialog{width:min(94vw,520px);max-height:88dvh;overflow:auto}
-  .modal{padding:10px}
+/* V5 mobile-first creation UI */
+#mobileDock,#mobileBuildSheet,#mobileInspector{display:none}
+@media(max-width:650px){
+ body{background:#080c0a}
+ #top{height:50px;min-height:50px}
+ #brand{max-width:160px;font-size:11px}
+ #top>.topbtn{display:none}
+ #workspace{height:calc(100dvh - 50px - 72px)}
+ #left,#right{display:none}
+ #stage{width:100%}
+ #bottom{display:none}
+ #help{top:8px;left:8px;max-width:70vw;font-size:8px}
+ #mini{top:8px;right:8px}
+ #stageTools{right:8px;bottom:84px}
+ .stageBtn{width:46px;height:46px;border-radius:14px}
+ #mobileDock{
+   display:grid;position:fixed;left:0;right:0;bottom:0;height:72px;z-index:300;
+   grid-template-columns:repeat(5,1fr);gap:5px;padding:6px;
+   padding-bottom:max(6px,env(safe-area-inset-bottom));
+   background:#0b100df5;border-top:1px solid #344239;
+ }
+ #mobileDock button{border-radius:13px;padding:3px;font-size:19px;font-weight:900;min-width:0}
+ #mobileDock button small{display:block;font-size:7px;letter-spacing:.03em}
+ #mobileDock button.active{background:#32473a;border-color:#7f9b88}
+ #mobileDock button.primary{background:#668b73;color:#07100a}
+ #mobileBuildSheet,#mobileInspector{
+   position:fixed;left:8px;right:8px;bottom:78px;z-index:290;
+   max-height:66dvh;background:#101713ee;border:1px solid #3b4a40;
+   border-radius:18px;box-shadow:0 15px 50px #000b;overflow:auto;
+   padding:10px;
+ }
+ #mobileBuildSheet.open,#mobileInspector.open{display:block}
+ .sheetHead{display:flex;align-items:center;justify-content:space-between;position:sticky;top:-10px;background:#101713f5;padding:4px 0 9px;z-index:2}
+ .sheetHead b{font-size:14px}.sheetHead button{font-size:9px;padding:7px 10px}
+ #mobileAssetGrid{display:grid;grid-template-columns:repeat(3,1fr);gap:7px}
+ #mobileAssetGrid button{
+   min-height:76px;border-radius:13px;padding:7px;font-size:25px;
+   display:flex;flex-direction:column;justify-content:center;align-items:center;gap:3px
+ }
+ #mobileAssetGrid button small{font-size:8px;color:#b7c4bc}
+ #mobileQuickProps{display:grid;grid-template-columns:1fr 1fr;gap:7px}
+ #mobileQuickProps .full{grid-column:1/-1}
+ #mobileQuickProps input,#mobileQuickProps select{min-height:44px;width:100%;background:#080e0b;border:1px solid #39483f;color:#eef3ef;border-radius:10px;padding:8px}
+ .quickActions{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-top:9px}
+ .quickActions button{min-height:46px}
+ #testModal .dialog{width:100%;height:100%;max-height:100dvh;border-radius:0;padding:8px}
+ #testFrame{height:calc(100dvh - 130px)}
+ .modal{padding:0}
+ .modal .dialog{width:100%;max-height:100dvh;border-radius:0;min-height:100dvh}
+ .tabs{display:none}
 }
 
 </style>
@@ -140,8 +147,9 @@ body.fullEditor #stageTools{bottom:18px}
 <div id="workspace">
  <aside id="left">
   <div class="tabs">
-   <button class="tab active" data-tab="assets">RECURSOS</button>
-   <button class="tab" data-tab="layers">CAMADAS</button>
+   <button class="tab active" data-tab="assets">CONSTRUIR</button>
+   <button class="tab" data-tab="layers">CENAS</button>
+   <button class="tab" data-tab="story">HISTÓRIA</button>
   </div>
   <input id="search" placeholder="Buscar recurso...">
   <div id="leftContent"></div>
@@ -172,15 +180,6 @@ body.fullEditor #stageTools{bottom:18px}
  <button class="bottomBtn" id="gameBtn">BAIXAR JOGO</button>
 </footer>
 </div>
-
-<div id="mobileBar" aria-label="Ferramentas móveis">
-  <button id="mMenu">☰<br><small>RECURSOS</small></button>
-  <button id="mEdit">✎<br><small>EDITAR</small></button>
-  <button id="mProject" class="mPrimary">📦<br><small>PROJETO</small></button>
-  <button id="mExport">💾<br><small>EXPORTAR</small></button>
-  <button id="mMore">⋯<br><small>MAIS</small></button>
-</div>
-
 <div id="toast"></div>
 
 <!-- Projeto -->
@@ -208,6 +207,64 @@ body.fullEditor #stageTools{bottom:18px}
   <textarea id="globalCode" class="code" spellcheck="false"></textarea>
   <div class="actions"><button id="codeCancel">CANCELAR</button><button class="primary" id="codeApply">APLICAR</button></div>
  </div>
+</div>
+
+
+<!-- História / Gameplay -->
+<div class="modal" id="storyModal">
+ <div class="dialog">
+  <h2>🎬 História do capítulo</h2>
+  <p>Crie a experiência narrativa sem precisar escrever código.</p>
+  <div class="prop"><label>TÍTULO DO CAPÍTULO</label><input id="storyChapter"></div>
+  <div class="prop"><label>ABERTURA</label><textarea id="storyIntro" style="min-height:90px"></textarea></div>
+  <div class="prop"><label>OBJETIVO ATUAL</label><input id="storyObjective"></div>
+  <h3>DIÁLOGOS</h3>
+  <div id="dialogueList"></div>
+  <div class="actions"><button id="addDialogue">＋ ADICIONAR FALA</button></div>
+  <h3>FINAIS</h3>
+  <div id="endingList"></div>
+  <div class="actions"><button id="addEnding">＋ ADICIONAR FINAL</button></div>
+  <div class="actions"><button id="storyCancel">CANCELAR</button><button class="primary" id="storyApply">SALVAR HISTÓRIA</button></div>
+ </div>
+</div>
+
+<div class="modal" id="gameplayModal">
+ <div class="dialog">
+  <h2>🎮 Jogabilidade</h2>
+  <p>Configurações do jogo final. Os valores são aplicados ao modo 2.5D.</p>
+  <div class="metaGrid">
+   <div class="prop"><label>VIDA</label><input id="gpHealth" type="number"></div>
+   <div class="prop"><label>STAMINA</label><input id="gpStamina" type="number"></div>
+   <div class="prop"><label>DANO DO ATAQUE</label><input id="gpAttack" type="number"></div>
+   <div class="prop"><label>DANO DO INIMIGO</label><input id="gpEnemyDamage" type="number"></div>
+   <div class="prop"><label>DISTÂNCIA DE INTERAÇÃO</label><input id="gpDistance" type="number" step=".1"></div>
+   <div class="prop"><label>QUALIDADE</label><select id="gpQuality"><option value="high">ALTA</option><option value="balanced">EQUILIBRADA</option><option value="performance">DESEMPENHO</option></select></div>
+  </div>
+  <div class="notice">O jogo final usa câmera seguindo o personagem, iluminação, sombras, perspectiva 2.5D, colisões, inimigos, inventário, diálogos e objetivos.</div>
+  <div class="actions"><button id="gpCancel">CANCELAR</button><button class="primary" id="gpApply">SALVAR JOGABILIDADE</button></div>
+ </div>
+</div>
+
+<div id="mobileBuildSheet">
+ <div class="sheetHead"><b>＋ Construir</b><button id="closeBuild">FECHAR</button></div>
+ <div id="mobileAssetGrid"></div>
+</div>
+
+<div id="mobileInspector">
+ <div class="sheetHead"><b id="mobileInspectorTitle">Objeto</b><button id="closeInspector">FECHAR</button></div>
+ <div id="mobileQuickProps"></div>
+ <div class="quickActions">
+  <button id="quickDuplicate">DUPLICAR</button>
+  <button id="quickDelete" class="danger">EXCLUIR</button>
+ </div>
+</div>
+
+<div id="mobileDock">
+ <button id="dockBuild" class="active">＋<small>CONSTRUIR</small></button>
+ <button id="dockStory">🎬<small>HISTÓRIA</small></button>
+ <button id="dockGameplay">🎮<small>GAMEPLAY</small></button>
+ <button id="dockTest" class="primary">▶<small>JOGAR</small></button>
+ <button id="dockSave">💾<small>SALVAR</small></button>
 </div>
 
 <!-- Exportações -->
@@ -314,7 +371,24 @@ function defaultProject(){
   schema:'ohospital-project',schemaVersion:2,version:1,
   metadata:{name:'O HOSPITAL — Capítulo 1',appVersion:'1.0.0',description:'Projeto criado no Editor Mobile',cover:''},
   map:{width:37,height:27,tile:48},
-  settings:{grid:true,background:'#111713'},
+  settings:{grid:true,background:'#111713',camera:'follow',quality:'high'},
+  story:{
+   chapter:'Capítulo 1 — A Noite da Evacuação',
+   intro:'O hospital foi evacuado às pressas. As luzes ainda funcionam em alguns setores, mas ninguém responde pelo rádio.',
+   objective:'Encontre a sala de controle e descubra por que a energia da UTI foi desligada.',
+   dialogue:[
+    {speaker:'Rádio',text:'...se alguém estiver ouvindo, não vá para a ala leste. Repito: não vá para a ala leste.',mood:'tension'},
+    {speaker:'Você',text:'Se eu descobrir o que aconteceu aqui, talvez consiga sair vivo.',mood:'calm'}
+   ],
+   endings:[
+    {title:'A verdade',text:'Você encontrou os registros e descobriu a origem do surto.'},
+    {title:'Evacuação',text:'Você conseguiu reativar a energia e abrir a saída.'}
+   ]
+  },
+  gameplay:{
+   health:100,stamina:100,attackDamage:35,enemyDamage:15,
+   interactionDistance:1.5,autosave:true
+  },
   globalCode:`// Código global opcional\n// Exemplo: game.openDoor('porta_uti');`,
   objects:[
    obj('floor',8,9,{w:21,h:5,solid:false,name:'Recepção / Arquivo'}),
@@ -356,7 +430,9 @@ function normalizeProject(p){
  q.metadata=q.metadata||{name:q.name||'Projeto importado',appVersion:String(q.version||'1.0.0'),description:'',cover:''};
  if(!q.metadata.name) q.metadata.name=q.name||'Projeto importado';
  if(!q.metadata.appVersion) q.metadata.appVersion='1.0.0';
- q.settings=q.settings||{grid:true,background:'#111713'};
+ q.settings=q.settings||{grid:true,background:'#111713',camera:'follow',quality:'high'};
+ q.story=q.story||{chapter:'Capítulo 1',intro:'',objective:'',dialogue:[],endings:[]};
+ q.gameplay=q.gameplay||{health:100,stamina:100,attackDamage:35,enemyDamage:15,interactionDistance:1.5,autosave:true};
  q.globalCode=typeof q.globalCode==='string'?q.globalCode:'';
  q.objects=q.objects.filter(o=>o&&typeof o==='object'&&typeof o.x==='number'&&typeof o.y==='number').map(o=>{
    const base=templates[o.type]||{};
@@ -410,6 +486,20 @@ function iconFor(type){return ASSETS.flatMap(c=>c.items).find(a=>a[0]===type)?.[
 function escapeHtml(s){return String(s??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]))}
 function renderAssets(){
  const q=$('search').value.toLowerCase(),box=$('leftContent');
+ if(activeTab==='story'){
+  const s=project.story||{};
+  box.innerHTML=`<div class="notice" style="margin:8px">
+   <b>${escapeHtml(s.chapter||'Capítulo sem título')}</b><br><br>
+   ${escapeHtml(s.objective||'Sem objetivo definido.')}
+  </div>
+  <button class="asset" id="storyOpen"><span class="ico">🎬</span><span><b>Editar história</b><small>Abertura, falas e finais</small></span></button>
+  <button class="asset" id="gameplayOpen"><span class="ico">🎮</span><span><b>Editar gameplay</b><small>Vida, stamina, dano e qualidade</small></span></button>
+  <div class="sectionTitle">FLUXO</div>
+  <div class="empty">1. Monte o hospital<br>2. Coloque o jogador<br>3. Adicione itens e inimigos<br>4. Crie o objetivo<br>5. Escreva os diálogos<br>6. Teste no celular</div>`;
+  $('storyOpen').onclick=openStory;
+  $('gameplayOpen').onclick=openGameplay;
+  return;
+ }
  if(activeTab==='layers'){
   box.innerHTML=project.objects.map(o=>`<button class="asset" data-id="${o.id}"><span class="ico">${iconFor(o.type)}</span><span>${escapeHtml(o.name||o.type)}<small>${o.type} · ${Math.round(o.x)},${Math.round(o.y)}</small></span></button>`).join('')||'<div class="empty">Nenhum objeto no mapa.</div>';
   box.querySelectorAll('.asset').forEach(b=>b.onclick=()=>select(b.dataset.id));return
@@ -474,24 +564,109 @@ function exportCodeFile(){
 }
 function makeGameHTML(){
  const data=JSON.stringify(projectForExport()).replace(/</g,'\\u003c');
- return `<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover"><title>${escapeHtml(project.metadata.name)}</title>
- <style>html,body{margin:0;height:100%;overflow:hidden;background:#080c0a;color:#e8eee9;font-family:system-ui}canvas{width:100%;height:100%;display:block}#hud{position:fixed;top:10px;left:10px;right:10px;display:flex;justify-content:space-between;background:#080d0dcc;padding:8px;border:1px solid #39463e;border-radius:9px;font-size:11px}#joy{position:fixed;left:16px;bottom:18px;width:126px;height:126px;border-radius:50%;background:#1a241fbb;border:1px solid #758177;touch-action:none}#stick{position:absolute;width:50px;height:50px;left:37px;top:37px;border-radius:50%;background:#aebbb2aa}#use{position:fixed;right:18px;bottom:28px;width:72px;height:72px;border-radius:50%;background:#718d7c;color:#08100b;font-weight:900;border:1px solid #a9c0b0}#msg{position:fixed;left:50%;bottom:120px;transform:translateX(-50%);background:#eef3ef;color:#0a100c;padding:9px 13px;border-radius:9px;display:none;max-width:82vw;text-align:center;font-size:12px}</style></head>
- <body><canvas id="g"></canvas><div id="hud"><b>${escapeHtml(project.metadata.name)}</b><span>v${escapeHtml(project.metadata.appVersion)}</span></div><div id="joy"><div id="stick"></div></div><button id="use">USAR</button><div id="msg"></div>
+ const title=escapeHtml(project.metadata.name),version=escapeHtml(project.metadata.appVersion);
+ return `<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover"><title>${title}</title>
+ <style>
+ html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#060907;color:#edf3ee;font-family:system-ui,-apple-system,sans-serif}
+ canvas{width:100%;height:100%;display:block;touch-action:none}
+ #hud{position:fixed;top:max(10px,env(safe-area-inset-top));left:10px;right:10px;display:flex;align-items:center;gap:9px;pointer-events:none}
+ .panel{background:#08100dd9;border:1px solid #405047;border-radius:12px;padding:8px 10px;box-shadow:0 6px 25px #0008}
+ #title{font-weight:900;font-size:11px;margin-right:auto}.stat{font-size:9px;color:#b9c6be}
+ #objective{position:fixed;left:10px;top:54px;max-width:72vw;font-size:10px;line-height:1.35}
+ #health{height:5px;width:90px;background:#27312b;border-radius:99px;overflow:hidden;margin-top:4px}#hp{height:100%;width:100%;background:#a56f6f}
+ #joy{position:fixed;left:18px;bottom:18px;width:132px;height:132px;border-radius:50%;background:#101914aa;border:1px solid #76877d;touch-action:none;backdrop-filter:blur(4px)}
+ #stick{position:absolute;width:54px;height:54px;left:39px;top:39px;border-radius:50%;background:#b6c6bb99}
+ .act{position:fixed;border:0;font-weight:900;box-shadow:0 8px 25px #0008}
+ #use{right:20px;bottom:32px;width:76px;height:76px;border-radius:50%;background:#789b82;color:#07100a}
+ #run{right:108px;bottom:39px;width:58px;height:58px;border-radius:50%;background:#1d2922;color:#eef3ee}
+ #attack{right:20px;bottom:124px;width:64px;height:64px;border-radius:50%;background:#654f4d;color:#fff}
+ #msg{position:fixed;left:50%;bottom:145px;transform:translateX(-50%);background:#edf3ee;color:#08100a;padding:10px 14px;border-radius:11px;display:none;max-width:82vw;text-align:center;font-size:12px;box-shadow:0 8px 30px #0009}
+ #dialog{position:fixed;left:10px;right:10px;bottom:14px;background:#0a110edb;border:1px solid #56675d;border-radius:16px;padding:13px;display:none;backdrop-filter:blur(8px)}
+ #speaker{font-size:10px;color:#b6cbbd;font-weight:900;text-transform:uppercase}#dialogText{font-size:14px;line-height:1.45;margin-top:5px}
+ #next{margin-top:9px;width:100%;padding:10px;border-radius:10px;border:1px solid #607568;background:#31483a;color:#eff5f0;font-weight:800}
+ #inventory{position:fixed;top:54px;right:10px;font-size:9px}
+ </style></head>
+ <body>
+ <canvas id="g"></canvas>
+ <div id="hud"><div class="panel" id="title">${title} <span class="stat">v${version}</span><div id="health"><div id="hp"></div></div></div><div class="panel stat" id="inventory">Itens: 0</div></div>
+ <div id="objective" class="panel">🎯 ${escapeHtml(project.story?.objective||'Explore o hospital.')}</div>
+ <div id="joy"><div id="stick"></div></div>
+ <button id="run" class="act">🏃</button><button id="attack" class="act">⚔</button><button id="use" class="act">USAR</button>
+ <div id="msg"></div>
+ <div id="dialog"><div id="speaker"></div><div id="dialogText"></div><button id="next">CONTINUAR</button></div>
  <script>
- const P=${data},c=document.getElementById('g'),x=c.getContext('2d');let W,H,d=devicePixelRatio||1;
- const pl=P.objects.find(o=>o.type==='player')||{x:2,y:2,w:.6,h:.8};let px=pl.x,py=pl.y,joy={x:0,y:0};
+ const P=${data},c=document.getElementById('g'),x=c.getContext('2d');
+ let W=0,H=0,d=devicePixelRatio||1,last=performance.now(),px=0,py=0,camX=0,camY=0;
+ let joy={x:0,y:0},run=false,hp=P.gameplay?.health||100,stamina=P.gameplay?.stamina||100;
+ let items=[],dialogueIndex=-1,dialogueOpen=false,interacted=new Set(),attackTime=0;
+ const pl=P.objects.find(o=>o.type==='player')||{x:2,y:2,w:.6,h:.8};px=pl.x;py=pl.y;
  function rs(){W=innerWidth;H=innerHeight;c.width=W*d;c.height=H*d;x.setTransform(d,0,0,d,0,0)}addEventListener('resize',rs);rs();
- function solid(b){for(const o of P.objects){if(!o.solid||o.type==='player')continue;if(b.x+pl.w/2>o.x-o.w/2&&b.x-pl.w/2<o.x+o.w/2&&b.y+pl.h/2>o.y-o.h/2&&b.y-pl.h/2<o.y+o.h/2)return true}return false}
- function say(t){let m=document.getElementById('msg');m.textContent=t;m.style.display='block';clearTimeout(window.__m);window.__m=setTimeout(()=>m.style.display='none',2300)}
- function draw(){x.clearRect(0,0,W,H);let s=Math.min(W/(P.map.width*P.map.tile),H/(P.map.height*P.map.tile))*.88,t=P.map.tile*s,ox=(W-P.map.width*t)/2,oy=(H-P.map.height*t)/2;x.fillStyle=P.settings.background||'#111713';x.fillRect(0,0,W,H);
- for(const o of P.objects)if(o.type==='floor'){x.fillStyle=o.name&&o.name.includes('UTI')?'#18221e':'#1b2520';x.fillRect(ox+(o.x-o.w/2)*t,oy+(o.y-o.h/2)*t,o.w*t,o.h*t)}
- for(const o of P.objects)if(o.type!=='floor'&&o.type!=='player'){let xx=ox+(o.x-o.w/2)*t,yy=oy+(o.y-o.h/2)*t;x.fillStyle=o.type==='wall'?'#68746d':o.type==='door'?(o.open?'#718b78':'#614f45'):o.type==='enemy'?'#8f5c5c':o.type==='bed'?'#70847a':o.type==='safe'?'#5b6260':o.type==='item'?'#d2bf65':o.type==='weapon'?'#b5b5ad':'#59645d';x.fillRect(xx,yy,o.w*t,o.h*t)}
- x.fillStyle='#dbe8df';x.beginPath();x.arc(ox+px*t,oy+py*t,Math.max(6,t*.22),0,7);x.fill()}
- function loop(){let speed=.052,dx=joy.x*speed,dy=joy.y*speed,n;if(dx){n={x:px+dx,y:py};if(!solid(n))px=n.x}if(dy){n={x:px,y:py+dy};if(!solid(n))py=n.y}draw();requestAnimationFrame(loop)}loop();
+ const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
+ function dist(a,b){return Math.hypot(a.x-b.x,a.y-b.y)}
+ function solidAt(nx,ny,self){for(const o of P.objects){if(o===self||!o.solid||o.type==='player')continue;if(Math.abs(nx-o.x)<(o.w+pl.w)*.45&&Math.abs(ny-o.y)<(o.h+pl.h)*.45)return true}return false}
+ function move(dt){
+   const mag=Math.hypot(joy.x,joy.y);if(mag<.05)return;
+   let speed=(run&&stamina>1)?3.0:1.85;if(run)stamina=clamp(stamina-dt*24,0,100);else stamina=clamp(stamina+dt*13,0,100);
+   let dx=joy.x*speed*dt,dy=joy.y*speed*dt;
+   if(!solidAt(px+dx,py,pl))px+=dx;if(!solidAt(px,py+dy,pl))py+=dy;
+ }
+ function updateEnemies(dt){
+   for(const e of P.objects.filter(o=>o.type==='enemy')){
+     const dd=Math.hypot(px-e.x,py-e.y);
+     if(dd<Math.max(e.vision||6,5)){
+       const sp=(e.speed||1.5)*dt;
+       const ex=(px-e.x)/(dd||1)*sp,ey=(py-e.y)/(dd||1)*sp;
+       if(!solidAt(e.x+ex,e.y,e))e.x+=ex;if(!solidAt(e.x,e.y+ey,e))e.y+=ey;
+       if(dd<.72&&performance.now()-attackTime>900){hp=clamp(hp-(e.damage||P.gameplay?.enemyDamage||15),0,100);attackTime=performance.now();say('Você foi ferido.');}
+     }
+   }
+ }
+ function say(t){const m=document.getElementById('msg');m.textContent=t;m.style.display='block';clearTimeout(window.__m);window.__m=setTimeout(()=>m.style.display='none',2400)}
+ function openDialogue(){if(!P.story?.dialogue?.length)return false;dialogueIndex=0;dialogueOpen=true;renderDialogue();return true}
+ function renderDialogue(){const q=P.story.dialogue[dialogueIndex];if(!q){dialogueOpen=false;document.getElementById('dialog').style.display='none';return}document.getElementById('speaker').textContent=q.speaker||'Desconhecido';document.getElementById('dialogText').textContent=q.text||'';document.getElementById('dialog').style.display='block'}
+ document.getElementById('next').onclick=()=>{dialogueIndex++;renderDialogue()};
+ function interact(){
+   let best=null,bd=P.gameplay?.interactionDistance||1.5;
+   for(const o of P.objects){const q=Math.hypot(px-o.x,py-o.y);if(o.interactive&&q<bd&&(!best||q<Math.hypot(px-best.x,py-best.y)))best=o}
+   if(best){
+     if(best.type==='item'||best.type==='weapon'){if(!items.includes(best.itemId)){items.push(best.itemId||best.name);best.collected=true;document.getElementById('inventory').textContent='Itens: '+items.length;say(best.message||('Você pegou '+best.name));}}
+     else if(best.type==='safe'){say('Cofre: procure a combinação correta.');}
+     else if(best.type==='door'){if(best.locked&&best.requires&&!items.includes(best.requires)){say('Está trancada. Falta: '+best.requires);return}best.open=true;best.solid=false;say('Porta aberta.');}
+     else {say(best.message||best.name);if(best.type==='generator'&&!interacted.has(best.id)){interacted.add(best.id);say('A energia principal foi reativada.');}}
+   } else if(!dialogueOpen) openDialogue();
+ }
+ function attack(){
+   attackTime=performance.now();
+   for(const e of P.objects.filter(o=>o.type==='enemy')){if(Math.hypot(px-e.x,py-e.y)<1.25){e.hp=(e.hp??60)-(P.gameplay?.attackDamage||35);say('Ataque acertou.');if(e.hp<=0){e.dead=true;say('Infectado neutralizado.')}}}
+ }
+ function iso(wx,wy){const s=Math.min(W/18,H/11);return{x:W/2+(wx-camX-wy+camY)*s*.62,y:H/2+(wx-camX+wy-camY)*s*.31}}
+ function poly(points,fill,stroke){x.beginPath();points.forEach((p,i)=>i?x.lineTo(p.x,p.y):x.moveTo(p.x,p.y));x.closePath();x.fillStyle=fill;x.fill();if(stroke){x.strokeStyle=stroke;x.stroke()}}
+ function tile(wx,wy,fill){const a=iso(wx,wy),b=iso(wx+1,wy),cc=iso(wx+1,wy+1),e=iso(wx,wy+1);poly([a,b,cc,e],fill)}
+ function cube(o){
+   const z=iso(o.x-o.w/2,o.y-o.h/2),z2=iso(o.x+o.w/2,o.y-o.h/2),z3=iso(o.x+o.w/2,o.y+o.h/2),z4=iso(o.x-o.w/2,o.y+o.h/2);
+   const h=Math.max(4,(o.depth||.55)*Math.min(W/18,H/11));
+   poly([z,z2,{x:z2.x,y:z2.y-h},{x:z.x,y:z.y-h}],o.type==='wall'?'#59665e':'#3f4d45');
+   poly([z2,z3,{x:z3.x,y:z3.y-h},{x:z2.x,y:z2.y-h}],o.type==='door'?'#5d4b43':'#526057');
+   poly([z,z2,{x:z2.x,y:z2.y-h},{x:z.x,y:z.y-h}],o.type==='bed'?'#89988f':'#69766e');
+   x.fillStyle='rgba(0,0,0,.28)';x.beginPath();x.ellipse(z3.x,z3.y+2,18,6,0,0,Math.PI*2);x.fill();
+ }
+ function draw(){
+   x.clearRect(0,0,W,H);
+   const s=Math.min(W/18,H/11);x.fillStyle=P.settings.background||'#0b100d';x.fillRect(0,0,W,H);
+   camX+=(px-camX)*.12;camY+=(py-camY)*.12;
+   const minX=Math.floor(camX-10),maxX=Math.ceil(camX+10),minY=Math.floor(camY-8),maxY=Math.ceil(camY+8);
+   for(let yy=minY;yy<maxY;yy++)for(let xx=minX;xx<maxX;xx++){if(xx<0||yy<0||xx>=P.map.width||yy>=P.map.height)continue;tile(xx,yy,(xx+yy)%2?'#18221d':'#1b2620')}
+   const objs=P.objects.filter(o=>!o.collected&&!o.dead&&o.type!=='floor').slice().sort((a,b)=>(a.x+a.y)-(b.x+b.y));
+   for(const o of objs)cube(o);
+   const pp=iso(px,py),ph=s*.75;x.fillStyle='#0a0d0b55';x.beginPath();x.ellipse(pp.x,pp.y+4,12,5,0,0,Math.PI*2);x.fill();x.fillStyle='#b9cec0';x.beginPath();x.arc(pp.x,pp.y-ph*.35,9,0,Math.PI*2);x.fill();x.fillRect(pp.x-7,pp.y-ph*.28,14,18);
+ }
+ function frame(now){const dt=Math.min(.04,(now-last)/1000);last=now;if(!dialogueOpen){move(dt);updateEnemies(dt)}document.getElementById('hp').style.width=hp+'%';draw();if(hp<=0)say('Você caiu. Recomece o capítulo.');requestAnimationFrame(frame)}
+ requestAnimationFrame(frame);
  const J=document.getElementById('joy'),S=document.getElementById('stick');let jid=null;
- function jm(e){let r=J.getBoundingClientRect(),dx=e.clientX-r.left-r.width/2,dy=e.clientY-r.top-r.height/2,l=Math.hypot(dx,dy),m=40;if(l>m){dx*=m/l;dy*=m/l}joy.x=dx/m;joy.y=dy/m;S.style.transform='translate('+dx+'px,'+dy+'px)'}
+ function jm(e){const r=J.getBoundingClientRect();let dx=e.clientX-r.left-r.width/2,dy=e.clientY-r.top-r.height/2,l=Math.hypot(dx,dy),m=42;if(l>m){dx*=m/l;dy*=m/l}joy.x=dx/m;joy.y=dy/m;S.style.transform='translate('+dx+'px,'+dy+'px)'}
  J.onpointerdown=e=>{jid=e.pointerId;J.setPointerCapture(jid);jm(e)};J.onpointermove=e=>{if(e.pointerId===jid)jm(e)};J.onpointerup=J.onpointercancel=()=>{jid=null;joy.x=joy.y=0;S.style.transform='translate(0,0)'};
- document.getElementById('use').onclick=()=>{let best=null,bd=1.35;for(const o of P.objects){let q=Math.hypot(px-o.x,py-o.y);if(o.interactive&&q<bd){best=o;bd=q}}if(best)say(best.message||('Interagiu com '+best.name));};
+ document.getElementById('run').onpointerdown=()=>run=true;document.getElementById('run').onpointerup=()=>run=false;document.getElementById('run').onpointercancel=()=>run=false;
+ document.getElementById('use').onclick=interact;document.getElementById('attack').onclick=attack;
  <\/script></body></html>`;
 }
 function exportGame(){const name=safeFileName(project.metadata.name);saveBlob(`${name}_v${safeFileName(project.metadata.appVersion)}.html`,makeGameHTML(),'text/html');toast('Jogo standalone exportado.')}
@@ -563,62 +738,61 @@ fitMap();renderAll();draw();
 </script>
 
 <script>
-/* ===== V4 MOBILE: apenas atalhos para funções já existentes ===== */
-(function(){
-  function el(id){return document.getElementById(id)}
-  function openLeft(){
-    document.body.classList.remove('mobileRight');
-    document.body.classList.toggle('mobileLeft');
-  }
-  function openRight(){
-    document.body.classList.remove('mobileLeft');
-    document.body.classList.add('mobileRight');
-  }
-  function closePanels(){
-    document.body.classList.remove('mobileLeft','mobileRight');
-  }
+/* V5: criação por toque + história + gameplay */
+function openStory(){
+ const s=project.story||{};$('storyChapter').value=s.chapter||'';$('storyIntro').value=s.intro||'';$('storyObjective').value=s.objective||'';
+ renderStoryLists();$('storyModal').classList.add('open');
+}
+function renderStoryLists(){
+ const s=project.story||{};$('dialogueList').innerHTML=(s.dialogue||[]).map((d,i)=>`<div class="prop" style="border:1px solid #303e35;border-radius:9px;margin:5px 0"><div class="row"><input data-d="speaker" data-i="${i}" value="${escapeHtml(d.speaker||'')}"><button data-del-d="${i}" class="danger">×</button></div><textarea data-d="text" data-i="${i}" style="min-height:65px" placeholder="Fala">${escapeHtml(d.text||'')}</textarea></div>`).join('')||'<div class="empty">Nenhuma fala ainda.</div>';
+ $('endingList').innerHTML=(s.endings||[]).map((d,i)=>`<div class="prop" style="border:1px solid #303e35;border-radius:9px;margin:5px 0"><div class="row"><input data-e="title" data-i="${i}" value="${escapeHtml(d.title||'')}"><button data-del-e="${i}" class="danger">×</button></div><textarea data-e="text" data-i="${i}" style="min-height:65px">${escapeHtml(d.text||'')}</textarea></div>`).join('')||'<div class="empty">Nenhum final ainda.</div>';
+ $('dialogueList').querySelectorAll('[data-d]').forEach(e=>e.oninput=()=>{project.story.dialogue[e.dataset.i][e.dataset.d]=e.value;markDirty()});
+ $('endingList').querySelectorAll('[data-e]').forEach(e=>e.oninput=()=>{project.story.endings[e.dataset.i][e.dataset.e]=e.value;markDirty()});
+ $('dialogueList').querySelectorAll('[data-del-d]').forEach(e=>e.onclick=()=>{pushHistory();project.story.dialogue.splice(Number(e.dataset.delD),1);renderStoryLists()});
+ $('endingList').querySelectorAll('[data-del-e]').forEach(e=>e.onclick=()=>{pushHistory();project.story.endings.splice(Number(e.dataset.delE),1);renderStoryLists()});
+}
+function openGameplay(){
+ const g=project.gameplay||{};$('gpHealth').value=g.health??100;$('gpStamina').value=g.stamina??100;$('gpAttack').value=g.attackDamage??35;$('gpEnemyDamage').value=g.enemyDamage??15;$('gpDistance').value=g.interactionDistance??1.5;$('gpQuality').value=project.settings.quality||'high';$('gameplayModal').classList.add('open')
+}
+$('storyApply').onclick=()=>{pushHistory();project.story.chapter=$('storyChapter').value.trim();project.story.intro=$('storyIntro').value;project.story.objective=$('storyObjective').value.trim();$('storyModal').classList.remove('open');renderAll();markDirty();toast('História salva.')};
+$('storyCancel').onclick=()=>{$('storyModal').classList.remove('open')};
+$('addDialogue').onclick=()=>{project.story.dialogue.push({speaker:'Personagem',text:'Nova fala...',mood:'neutral'});renderStoryLists()};
+$('addEnding').onclick=()=>{project.story.endings.push({title:'Novo final',text:'Descreva o final...'});renderStoryLists()};
+$('gpApply').onclick=()=>{pushHistory();project.gameplay.health=Number($('gpHealth').value)||100;project.gameplay.stamina=Number($('gpStamina').value)||100;project.gameplay.attackDamage=Number($('gpAttack').value)||35;project.gameplay.enemyDamage=Number($('gpEnemyDamage').value)||15;project.gameplay.interactionDistance=Number($('gpDistance').value)||1.5;project.settings.quality=$('gpQuality').value;$('gameplayModal').classList.remove('open');markDirty();toast('Gameplay salvo.')};
+$('gpCancel').onclick=()=>{$('gameplayModal').classList.remove('open')};
 
-  el('mMenu').onclick=function(){
-    if(document.body.classList.contains('mobileLeft')) closePanels();
-    else {
-      closePanels();
-      el('left').style.display='';
-      document.querySelector('.tab[data-tab="assets"]')?.click();
-      openLeft();
-    }
-  };
+function renderMobileAssetGrid(){
+ const box=$('mobileAssetGrid');let out='';
+ for(const c of ASSETS)for(const a of c.items)out+=`<button data-type="${a[0]}">${a[1]}<small>${a[2]}</small></button>`;
+ box.innerHTML=out;box.querySelectorAll('button').forEach(b=>b.onclick=()=>{place(b.dataset.type);$('mobileBuildSheet').classList.remove('open');openMobileInspector()})
+}
+function openMobileInspector(){
+ const o=selected();if(!o)return;
+ $('mobileInspectorTitle').textContent=o.name||o.type;
+ $('mobileQuickProps').innerHTML=`<div class="full"><label>NOME</label><input id="mqName" value="${escapeHtml(o.name||'')}"></div>
+ <div><label>X</label><input id="mqX" type="number" step=".1" value="${o.x}"></div><div><label>Y</label><input id="mqY" type="number" step=".1" value="${o.y}"></div>
+ <div><label>LARGURA</label><input id="mqW" type="number" step=".1" value="${o.w}"></div><div><label>ALTURA</label><input id="mqH" type="number" step=".1" value="${o.h}"></div>
+ <div class="full"><label><input id="mqSolid" type="checkbox" ${o.solid?'checked':''}> COLISÃO</label></div>
+ <div class="full"><label><input id="mqInteractive" type="checkbox" ${o.interactive?'checked':''}> INTERAÇÃO</label></div>`;
+ ['Name','X','Y','W','H'].forEach(k=>{const id='mq'+k;$(id).onchange=()=>{pushHistory();o[{Name:'name',X:'x',Y:'y',W:'w',H:'h'}[k]]=(k==='Name'?$(id).value:Number($(id).value));renderProps();renderAssets();draw();markDirty();$('mobileInspectorTitle').textContent=o.name||o.type}});
+ $('mqSolid').onchange=()=>{pushHistory();o.solid=$('mqSolid').checked;renderProps();draw();markDirty()};
+ $('mqInteractive').onchange=()=>{pushHistory();o.interactive=$('mqInteractive').checked;renderProps();draw();markDirty()};
+ $('mobileInspector').classList.add('open')
+}
+$('closeBuild').onclick=()=>$('mobileBuildSheet').classList.remove('open');
+$('closeInspector').onclick=()=>$('mobileInspector').classList.remove('open');
+$('quickDelete').onclick=()=>{deleteSelected();$('mobileInspector').classList.remove('open')};
+$('quickDuplicate').onclick=()=>{const o=selected();if(!o)return;pushHistory();const n=clone(o);n.id=uid();n.x+=.7;n.y+=.7;n.name=o.name+' (cópia)';project.objects.push(n);selectedId=n.id;renderAll();draw();openMobileInspector()};
+$('dockBuild').onclick=()=>{$('mobileInspector').classList.remove('open');$('mobileBuildSheet').classList.toggle('open')};
+$('dockStory').onclick=openStory;
+$('dockGameplay').onclick=openGameplay;
+$('dockTest').onclick=()=>$('testBtn').click();
+$('dockSave').onclick=()=>$('saveBtn').click();
+renderMobileAssetGrid();
 
-  el('mEdit').onclick=function(){
-    if(typeof selected==='function' && selected()) openRight();
-    else {
-      closePanels();
-      if(typeof toast==='function') toast('Toque em um objeto no mapa para editar.');
-    }
-  };
-
-  el('mProject').onclick=function(){
-    closePanels();
-    el('projectBtn').click();
-  };
-
-  el('mExport').onclick=function(){
-    closePanels();
-    el('saveBtn').click();
-  };
-
-  el('mMore').onclick=function(){
-    closePanels();
-    el('testBtn').click();
-  };
-
-  el('stage').addEventListener('pointerdown',function(){
-    closePanels();
-  },{passive:true});
-
-  document.addEventListener('fullscreenchange',function(){
-    if(document.fullscreenElement) closePanels();
-  });
-})();
+if(window.matchMedia('(max-width:650px)').matches){
+ canvas.addEventListener('pointerup',()=>{setTimeout(()=>{if(selectedId)openMobileInspector()},20)});
+}
 </script>
 
 </body>
