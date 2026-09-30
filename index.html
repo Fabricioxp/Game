@@ -1,0 +1,122 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<title>O HOSPITAL — Editor</title>
+<meta name="theme-color" content="#0b0f0d">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<link rel="manifest" href="manifest.json">
+<link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+<div id="app">
+<header id="top">
+ <div id="brand">🏥 O HOSPITAL · EDITOR</div>
+ <span id="projectBadge"></span>
+ <button class="topbtn" id="projectBtn">PROJETO</button>
+ <button class="topbtn" id="newBtn">NOVO</button>
+ <button class="topbtn" id="saveBtn">BAIXAR</button>
+ <button class="topbtn" id="loadBtn">UPAR</button>
+ <button class="topbtn" id="fullscreenBtn">⛶ TELA CHEIA</button><button class="topbtn success" id="installBtn" style="display:none">📱 INSTALAR</button><button class="topbtn primary" id="testBtn">▶ TESTAR</button>
+</header>
+<div id="workspace">
+ <aside id="left">
+  <div class="tabs">
+   <button class="tab active" data-tab="assets">RECURSOS</button>
+   <button class="tab" data-tab="layers">CAMADAS</button>
+  </div>
+  <input id="search" placeholder="Buscar recurso...">
+  <button id="extensionsBtn" class="asset warn" style="margin-top:7px"><span class="ico">🧩</span><span><b>CRIAR / EXTENSÕES</b><small>Novo item, estrutura ou função</small></span></button><div id="leftContent"></div>
+ </aside>
+ <main id="stage">
+  <canvas id="canvas"></canvas>
+  <div id="help">Toque no mapa para selecionar. Arraste para mover. Use +/− para zoom.</div>
+  <div id="mini">MAPA · <span id="coords">0,0</span></div>
+ </main>
+ <aside id="right">
+  <div class="sectionTitle">PROPRIEDADES</div>
+  <div id="rightContent"></div>
+ </aside>
+</div>
+<footer id="bottom">
+ <div id="status">Projeto: Capítulo 1</div>
+ <button class="bottomBtn" id="zoomOut">−</button>
+ <button class="bottomBtn" id="zoomIn">＋</button>
+ <button class="bottomBtn" id="gridBtn">GRADE</button>
+ <button class="bottomBtn" id="undoBtn">↶</button>
+ <button class="bottomBtn" id="redoBtn">↷</button>
+ <button class="bottomBtn" id="codeBtn">CÓDIGO</button><button class="bottomBtn success" id="gameBtn">🎮 JOGO</button>
+</footer>
+</div>
+<div id="toast"></div>
+<div id="orientationGate"><div class="rotateIcon">⟳</div><b>VIRE O CELULAR</b><span>O editor foi projetado para funcionar em tela deitada.</span><button id="gateFullscreen">⛶ TELA CHEIA</button></div>
+
+<div class="modal" id="projectModal">
+ <div class="dialog">
+  <h2>📦 Configurações do projeto</h2>
+  <p>Estas informações acompanham o projeto e também aparecem no jogo exportado.</p>
+  <div class="prop"><label>NOME DO JOGO</label><input id="metaName" placeholder="O Hospital — Capítulo 1"></div>
+  <div class="prop row"><div><label>VERSÃO DO JOGO</label><input id="metaVersion" placeholder="1.0.0"></div><div><label>VERSÃO DO EDITOR</label><input value="3.1" disabled></div></div>
+  <div class="prop"><label>DESCRIÇÃO</label><textarea id="metaDescription" placeholder="Descrição do capítulo/projeto..."></textarea></div>
+  <div class="prop"><label>CAPA / ÍCONE</label><div class="coverBox"><img id="coverPreview" class="coverPreview" alt="Capa"><div><input id="coverInput" type="file" accept="image/*" hidden><label id="fileLabel" for="coverInput">📷 ESCOLHER FOTO</label><div style="font-size:9px;color:#91a097;margin-top:6px">A imagem fica dentro do arquivo do projeto.</div></div></div></div>
+  <div class="prop"><div class="check"><input id="autoSave" type="checkbox"> Salvar rascunho automaticamente neste aparelho</div></div>
+  <div class="prop row"><button id="projectClose">FECHAR</button><button class="primary" id="projectApply">SALVAR CONFIGURAÇÕES</button></div>
+  <hr style="border-color:#2d3933;border-width:1px 0 0;margin:12px 0">
+  <div class="prop row"><button id="projectDownload">⬇ PROJETO EDITÁVEL</button><button id="gameDownload" class="success">🎮 BAIXAR JOGO</button></div>
+  <div class="prop row"><button id="restoreDraft">♻ RESTAURAR RASCUNHO</button><button id="clearDraft" class="danger">APAGAR RASCUNHO</button></div>
+ </div>
+</div>
+<div class="modal" id="codeModal">
+ <div class="dialog">
+  <h2>⚙ Código global do projeto</h2>
+  <p>Use isto para regras que não cabem nos componentes visuais. O código fica salvo dentro do projeto.</p>
+  <textarea id="globalCode" class="code"></textarea>
+  <div class="row"><button id="codeCancel">CANCELAR</button><button class="primary" id="codeApply">APLICAR</button></div>
+ </div>
+</div>
+
+<div class="modal" id="extensionModal">
+ <div class="dialog">
+  <h2>🧩 Fábrica de extensões</h2>
+  <p>Crie recursos próprios sem mexer diretamente na estrutura interna do editor. O editor valida IDs, dimensões e sintaxe antes de adicionar.</p>
+  <div class="tabs" style="position:static;background:transparent;padding:0 0 8px"><button class="tab active" data-exttab="asset">NOVO RECURSO</button><button class="tab" data-exttab="function">NOVA FUNÇÃO</button><button class="tab" data-exttab="check">VERIFICAR</button></div>
+  <div id="extAssetPane">
+   <div class="prop"><label>TIPO DO RECURSO</label><select id="extKind"><option value="item">ITEM / OBJETO</option><option value="structure">ESTRUTURA</option><option value="gameplay">GAMEPLAY</option></select></div>
+   <div class="prop row"><div><label>ID TÉCNICO</label><input id="extId" placeholder="porta_secreta"></div><div><label>ÍCONE</label><input id="extIcon" value="🧩"></div></div>
+   <div class="prop"><label>NOME VISÍVEL</label><input id="extName" placeholder="Porta Secreta"></div>
+   <div class="prop"><label>DESCRIÇÃO</label><input id="extDesc" placeholder="Objeto criado pelo usuário"></div>
+   <div class="prop row"><div><label>LARGURA</label><input id="extW" type="number" step=".1" value="1"></div><div><label>ALTURA</label><input id="extH" type="number" step=".1" value="1"></div></div>
+   <div class="extensionGrid prop"><label class="check"><input id="extSolid" type="checkbox"> Colisão</label><label class="check"><input id="extInteractive" type="checkbox" checked> Interativo</label><label class="check"><input id="extLight" type="checkbox"> Emite luz</label><label class="check"><input id="extUnique" type="checkbox"> Único no mapa</label></div>
+   <div class="prop"><label>COR / VISUAL</label><input id="extColor" value="#59645d"></div>
+   <div class="prop"><label>CÓDIGO AO INTERAGIR (opcional)</label><textarea id="extCode" class="code codeSmall" placeholder="// game.setFlag('porta_aberta', true);
+// game.message('Funcionou!');"></textarea></div>
+   <div class="prop row"><button id="extCancel">FECHAR</button><button class="primary" id="extAdd">ADICIONAR RECURSO</button></div>
+  </div>
+  <div id="extFunctionPane" style="display:none">
+   <div class="prop"><label>ID DA FUNÇÃO</label><input id="fnId" placeholder="abrir_porta"></div>
+   <div class="prop"><label>NOME</label><input id="fnName" placeholder="Abrir porta"></div>
+   <div class="prop"><label>CÓDIGO DA FUNÇÃO</label><textarea id="fnCode" class="code codeSmall" placeholder="// Disponível como game.functions.abrir_porta(args)
+// game.openDoor(args.id);"></textarea></div>
+   <div class="prop"><button class="primary" id="fnAdd">ADICIONAR FUNÇÃO</button></div>
+  </div>
+  <div id="extCheckPane" style="display:none"><div id="validationBox" class="validation">Clique em VERIFICAR para analisar o projeto.</div><div class="prop"><button id="repairBtn">🛠 REPARAR E NORMALIZAR PROJETO</button></div></div>
+ </div>
+</div>
+<div class="modal" id="testModal">
+ <div class="dialog">
+  <h2>▶ Teste do projeto</h2>
+  <p>O modo de teste usa os mesmos dados do mapa. Esta primeira versão já permite andar, colidir com paredes e interagir com portas/objetos configurados.</p>
+  <iframe id="testFrame" sandbox="allow-scripts"></iframe>
+  <button id="testClose">VOLTAR AO EDITOR</button>
+ </div>
+</div>
+
+<input type="file" id="fileInput" accept=".json,application/json" hidden>
+
+<script src="js/app.js" defer></script>
+
+</body>
+</html>
