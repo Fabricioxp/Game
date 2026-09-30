@@ -1,314 +1,384 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
-<meta name="theme-color" content="#0a0d0b">
-<title>O HOSPITAL — Studio Mobile V7</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<title>O HOSPITAL — Capítulo 1: O Despertar</title>
 <style>
-:root{
- --bg:#080b09;--panel:#111713;--panel2:#17201a;--line:#2b372f;--text:#eef3ef;
- --muted:#91a096;--accent:#b8e35f;--accent2:#7dbdff;--danger:#ff6871;--gold:#f2c76d;
- --safe:env(safe-area-inset-bottom,0px)
-}
-*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
-html,body{margin:0;width:100%;height:100%;overflow:hidden;background:var(--bg);color:var(--text);font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,sans-serif}
-button,input,textarea,select{font:inherit}
-button{color:inherit}
-#app{height:100dvh;display:flex;flex-direction:column}
-#top{height:58px;min-height:58px;display:flex;align-items:center;gap:8px;padding:7px 10px;background:#0c100d;border-bottom:1px solid var(--line);z-index:30}
-.logo{width:40px;height:40px;border-radius:12px;background:linear-gradient(145deg,#d7ef88,#6d9b37);color:#10150d;display:grid;place-items:center;font-weight:1000;box-shadow:0 5px 18px #0007}
-#projectName{font-weight:900;font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;flex:1}
-.topbtn{height:42px;border:1px solid var(--line);background:var(--panel2);border-radius:12px;padding:0 12px;font-weight:800}
-.topbtn.primary{background:var(--accent);color:#11180d;border-color:#d7ef88}
-#workspace{position:relative;flex:1;min-height:0;overflow:hidden;background:#0b0f0c}
-#canvas{position:absolute;inset:0;width:100%;height:100%;touch-action:none}
-#gridOverlay{position:absolute;inset:0;pointer-events:none}
-#hint{position:absolute;left:50%;top:12px;transform:translateX(-50%);padding:8px 13px;border:1px solid #36443a;background:#0c110eee;border-radius:999px;color:#d9e3dc;font-size:12px;font-weight:800;z-index:5;white-space:nowrap}
-#selectionHud{position:absolute;display:none;z-index:10;pointer-events:none}
-#selectionHud .handle{width:20px;height:20px;border-radius:50%;background:#dff59a;border:3px solid #15200f;box-shadow:0 2px 9px #0009}
-#selectionHud .label{margin-top:5px;background:#0b100ce8;border:1px solid #5a704d;border-radius:8px;padding:5px 8px;font-size:11px;font-weight:900}
-#leftRail{position:absolute;left:10px;top:72px;bottom:78px;width:66px;display:flex;flex-direction:column;gap:7px;z-index:15}
-.railBtn{width:66px;min-height:58px;border:1px solid var(--line);border-radius:16px;background:#101611eF;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;font-size:20px;box-shadow:0 8px 20px #0005}
-.railBtn small{font-size:9px;font-weight:900;color:#bdc9c0}
-.railBtn.active{border-color:#8eaa69;background:#26331f}
-#rightSheet,#bottomSheet,#modal{position:absolute;z-index:40;background:#0d120fF8;border:1px solid var(--line);box-shadow:0 20px 50px #000b;backdrop-filter:blur(16px)}
-#rightSheet{top:8px;right:8px;bottom:8px;width:min(370px,calc(100vw - 92px));border-radius:20px;transform:translateX(115%);transition:.22s ease;overflow:auto}
-#rightSheet.open{transform:none}
-.sheetHead{position:sticky;top:0;background:#0d120ff5;padding:14px;display:flex;align-items:center;gap:8px;border-bottom:1px solid var(--line);z-index:2}
-.sheetHead strong{flex:1}
-.close{width:38px;height:38px;border-radius:11px;border:1px solid var(--line);background:var(--panel2)}
-.sheetBody{padding:12px}
-.card{border:1px solid var(--line);background:#121914;border-radius:15px;padding:12px;margin-bottom:9px}
-.cardTitle{font-size:11px;color:var(--muted);font-weight:900;letter-spacing:.08em;margin-bottom:9px}
-.bigAction{width:100%;min-height:54px;border:1px solid #3b4c40;background:#17211a;border-radius:14px;font-weight:900;text-align:left;padding:10px 12px;margin:5px 0}
-.bigAction:active,.railBtn:active,.topbtn:active{transform:scale(.98)}
-.assetGrid{display:grid;grid-template-columns:repeat(2,1fr);gap:8px}
-.asset{min-height:76px;border:1px solid var(--line);background:#151e18;border-radius:15px;padding:8px;display:flex;align-items:center;gap:9px;text-align:left}
-.asset .ico{font-size:25px;width:34px;text-align:center}.asset b{font-size:11px}.asset small{display:block;color:var(--muted);font-size:9px;margin-top:2px}
-#bottomSheet{left:50%;bottom:10px;width:min(720px,calc(100vw - 20px));border-radius:22px;transform:translate(-50%,120%);transition:.22s ease;max-height:min(72dvh,600px);overflow:auto}
-#bottomSheet.open{transform:translate(-50%,0)}
-#bottomNav{height:72px;min-height:72px;padding:7px 9px calc(7px + var(--safe));display:grid;grid-template-columns:repeat(5,1fr);gap:7px;background:#090d0bf5;border-top:1px solid var(--line);z-index:30}
-.navBtn{border:1px solid var(--line);border-radius:14px;background:#131b16;font-weight:900;font-size:10px;display:flex;flex-direction:column;justify-content:center;gap:2px}.navBtn span{font-size:21px}.navBtn.active{background:#273520;border-color:#7f9a5e}
-#toast{position:fixed;left:50%;bottom:90px;transform:translateX(-50%);z-index:100;background:#dff59a;color:#11180d;padding:10px 14px;border-radius:999px;font-weight:900;font-size:12px;display:none;box-shadow:0 8px 30px #0008;max-width:88vw;text-align:center}
-#modal{left:50%;top:50%;transform:translate(-50%,-50%);width:min(650px,calc(100vw - 24px));max-height:88dvh;border-radius:22px;display:none;overflow:auto}
-#modal.open{display:block}
-.field{margin:9px 0}.field label{display:block;color:var(--muted);font-size:10px;font-weight:900;margin-bottom:5px}.field input,.field textarea,.field select{width:100%;border:1px solid var(--line);background:#0b100d;color:var(--text);border-radius:11px;padding:11px;outline:none}.field textarea{min-height:86px;resize:vertical}
-.row{display:grid;grid-template-columns:1fr 1fr;gap:8px}
-.pill{display:inline-flex;align-items:center;gap:5px;border:1px solid var(--line);border-radius:999px;padding:6px 9px;font-size:10px;font-weight:900;color:#c9d3cc;background:#111812}
-#playOverlay{position:absolute;inset:0;background:#050806;z-index:80;display:none}
-#playOverlay.open{display:block}
-#gameCanvas{width:100%;height:100%;display:block;touch-action:none}
-#gameHud{position:absolute;inset:0;pointer-events:none}
-#gameTop{position:absolute;left:14px;right:14px;top:12px;display:flex;align-items:center;gap:8px}
-.hp{width:150px;height:14px;background:#222;border:1px solid #465047;border-radius:99px;overflow:hidden}.hp i{display:block;height:100%;background:#d95b5f;width:100%}
-#objective{margin-left:auto;background:#0a0f0cdd;border:1px solid #37453b;border-radius:12px;padding:9px 11px;font-size:11px;font-weight:900;max-width:54vw}
-#joy{position:absolute;left:18px;bottom:22px;width:128px;height:128px;border-radius:50%;background:#0b100cb5;border:1px solid #627066;pointer-events:auto}
-#knob{position:absolute;left:38px;top:38px;width:52px;height:52px;border-radius:50%;background:#dff59a;border:3px solid #16200f}
-.gameAction{position:absolute;right:18px;bottom:25px;width:72px;height:72px;border-radius:50%;border:1px solid #a5b58f;background:#25331fdd;font-size:28px;pointer-events:auto}
-.gameAction.small{width:52px;height:52px;right:95px;bottom:34px;font-size:19px}
-#dialogue{position:absolute;left:12px;right:12px;bottom:16px;background:#080d0beF;border:1px solid #536155;border-radius:18px;padding:13px;display:none;pointer-events:auto}
-#dialogue b{display:block;color:#dff59a;font-size:12px;margin-bottom:5px}#dialogue p{margin:0;font-size:13px;line-height:1.4}
-#dialogue button{margin-top:9px;width:100%;height:40px;border:1px solid #51614f;border-radius:10px;background:#182219;font-weight:900}
-.sectionTabs{display:grid;grid-template-columns:repeat(4,1fr);gap:5px;margin-bottom:10px}.sectionTabs button{height:38px;border:1px solid var(--line);background:#111812;border-radius:10px;font-size:10px;font-weight:900}.sectionTabs button.active{background:#2b3b25;border-color:#78935a}
-.listItem{display:flex;align-items:center;gap:9px;border:1px solid var(--line);background:#111812;border-radius:12px;padding:9px;margin:6px 0}.listItem .grow{flex:1}.listItem b{font-size:11px}.listItem small{display:block;color:var(--muted);font-size:9px}.miniBtn{width:36px;height:36px;border:1px solid var(--line);background:#182119;border-radius:10px}
-@media(max-width:720px){
- #leftRail{left:7px;width:55px;top:66px}.railBtn{width:55px;min-height:54px;border-radius:14px}
- #rightSheet{width:calc(100vw - 14px);right:7px;top:7px;bottom:7px}
- #hint{top:8px;font-size:10px}.topbtn{padding:0 9px}
-}
-@media(min-width:900px){
- #bottomNav{display:none}
- #workspace{height:calc(100dvh - 58px)}
-}
+:root{--ink:#e6e9e4;--muted:#a9b2aa;--panel:rgba(10,14,13,.94);--line:#59635d;--accent:#c6d0c7;--red:#a84e49}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent;user-select:none}
+html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#090d0c;color:var(--ink);font-family:system-ui,Segoe UI,Arial,sans-serif}
+canvas{position:fixed;inset:0;width:100%;height:100%;display:block;image-rendering:auto}
+button{font:700 12px system-ui;letter-spacing:.08em;color:var(--ink);background:linear-gradient(#27312d,#151c19);border:1px solid #69756d;border-radius:5px;padding:13px 18px;cursor:pointer;box-shadow:inset 0 1px #ffffff12,0 5px 16px #0008}
+button:active{transform:translateY(1px);filter:brightness(1.2)}
+html,body{height:100%;height:100dvh;overscroll-behavior:none;touch-action:none}body:fullscreen{width:100vw;height:100dvh}#hud,#controls{padding-bottom:calc(10px + env(safe-area-inset-bottom))}
+#hide{position:absolute;right:12px;top:76px;pointer-events:auto;border-radius:50%;width:52px;height:52px;padding:3px;font-size:9px;background:#101713e8}button:disabled{opacity:.4;cursor:not-allowed}button,.overlay{touch-action:manipulation}.overlay{pointer-events:auto}
+.overlay{position:fixed;inset:0;z-index:20;display:flex;align-items:center;justify-content:center;padding:18px;background:radial-gradient(ellipse at center,#101715b8,#030605ed);backdrop-filter:blur(5px)}
+.hidden{display:none!important}
+.card{width:min(92vw,560px);max-height:90dvh;overflow:auto;background:linear-gradient(145deg,#18201cfa,#0b100efc);border:1px solid #69756d;border-radius:8px;padding:clamp(20px,4vw,34px);box-shadow:0 25px 90px #000;text-align:center}
+.kicker{font-size:10px;letter-spacing:.32em;color:#aab5ac;text-transform:uppercase}
+h1{font-size:clamp(30px,7vw,54px);line-height:1.02;letter-spacing:.13em;margin:12px 0 8px;text-shadow:0 3px 22px #000}
+h2{font-size:19px;letter-spacing:.12em;margin:0 0 14px}
+p{font-size:13px;line-height:1.7;color:#c2cbc3}
+.menuBtns{display:grid;gap:10px;margin:24px auto 12px;max-width:330px}
+.subtle{font-size:10px;color:#89948b;letter-spacing:.08em}
+.setting{display:flex;align-items:center;justify-content:space-between;gap:15px;text-align:left;border-bottom:1px solid #ffffff18;padding:13px 2px;font-size:12px}
+.setting input{accent-color:#b8c4ba}
+#hud{position:fixed;inset:0;z-index:5;pointer-events:none;padding:calc(10px + env(safe-area-inset-top)) 12px 10px}
+.hudrow{display:flex;justify-content:space-between;gap:8px;align-items:flex-start}
+.readout{background:#070b0ad9;border:1px solid #aab5ac38;border-radius:4px;padding:8px 10px;font-size:10px;letter-spacing:.08em;box-shadow:0 3px 12px #0008;backdrop-filter:blur(4px)}
+.readout b{color:#e0e6df}
+#objective{position:absolute;top:62px;left:50%;transform:translateX(-50%);max-width:min(58vw,480px);text-align:center}
+.meter{height:4px;width:105px;background:#343b36;margin-top:5px}.meter span{display:block;height:100%;background:#b7c4b9}
+#prompt{position:absolute;bottom:120px;left:50%;transform:translateX(-50%);display:none;background:#080c0bed;border:1px solid #aab5ac8c;padding:10px 16px;border-radius:4px;font-size:11px;white-space:nowrap}
+#controls{position:fixed;inset:0;z-index:8;pointer-events:none}
+#joy{position:absolute;left:20px;bottom:18px;width:124px;height:124px;border:1px solid #dbe3dc55;border-radius:50%;background:#18211d66;pointer-events:auto;touch-action:none}
+#stick{position:absolute;width:50px;height:50px;left:36px;top:36px;border:1px solid #e2e9e188;border-radius:50%;background:#b9c5bc55;pointer-events:none}
+#look{position:absolute;right:0;top:0;width:55%;height:100%;pointer-events:auto;touch-action:none}
+#buttons{position:absolute;right:12px;bottom:18px;display:flex;gap:7px;align-items:end;pointer-events:auto}#action,#hide{display:none}#action.available,#hide.available{display:block}.setting output{min-width:2.5em;text-align:right;color:#e6e9e4}
+.ctrl{width:58px;height:58px;border-radius:50%;padding:3px;font-size:9px;background:#101713df}
+.ctrl.main{width:72px;height:72px;border-color:#c6d0c7}
+#toast{position:fixed;z-index:30;top:20%;left:50%;transform:translateX(-50%);background:#080c0bed;border:1px solid #758078;padding:11px 16px;font-size:11px;max-width:80vw;text-align:center;opacity:0;transition:opacity .2s;pointer-events:none}
+#toast.show{opacity:1}
+.choice{width:100%;margin:5px 0;text-align:left}
+#rotate{display:none;position:fixed;inset:0;z-index:100;background:#080c0a;align-items:center;justify-content:center;text-align:center;padding:25px}
+@media(orientation:portrait){#rotate{display:flex}}
+@media(max-width:650px){#buttons{gap:4px;right:7px}.ctrl{width:49px;height:49px;font-size:8px}.ctrl.main{width:62px;height:62px}#joy{width:112px;height:112px}#stick{left:31px;top:31px}.readout{font-size:9px;padding:7px}#objective{top:70px;max-width:64vw}}
 </style>
 </head>
 <body>
-<div id="app">
-<header id="top">
- <div class="logo">OH</div><div id="projectName">O HOSPITAL — Studio</div>
- <button class="topbtn" id="undo">↶</button><button class="topbtn" id="redo">↷</button>
- <button class="topbtn" id="save">💾</button><button class="topbtn primary" id="play">▶ TESTAR</button>
-</header>
-<main id="workspace">
- <canvas id="canvas"></canvas>
- <div id="hint">Toque em CONSTRUIR para colocar algo • arraste objetos diretamente</div>
- <div id="selectionHud"><div class="handle"></div><div class="label" id="selectionLabel"></div></div>
- <aside id="leftRail">
-  <button class="railBtn active" data-mode="build">🧱<small>CONSTRUIR</small></button>
-  <button class="railBtn" data-mode="scenes">🏥<small>CENAS</small></button>
-  <button class="railBtn" data-mode="story">📖<small>HISTÓRIA</small></button>
-  <button class="railBtn" data-mode="audio">🔊<small>ÁUDIO</small></button>
-  <button class="railBtn" data-mode="assets">🎨<small>ARTE</small></button>
- </aside>
- <aside id="rightSheet">
-  <div class="sheetHead"><strong id="sheetTitle">Construir</strong><button class="close" id="closeSheet">×</button></div>
-  <div class="sheetBody" id="sheetBody"></div>
- </aside>
- <div id="bottomSheet"><div class="sheetHead"><strong id="bottomTitle">Ações</strong><button class="close" id="closeBottom">×</button></div><div class="sheetBody" id="bottomBody"></div></div>
-</main>
-<nav id="bottomNav">
- <button class="navBtn active" data-mode="build"><span>🧱</span>CONSTRUIR</button>
- <button class="navBtn" data-mode="scenes"><span>🏥</span>CENAS</button>
- <button class="navBtn" data-mode="story"><span>📖</span>HISTÓRIA</button>
- <button class="navBtn" data-mode="audio"><span>🔊</span>ÁUDIO</button>
- <button class="navBtn" data-mode="assets"><span>🎨</span>ARTE</button>
-</nav>
+<div id="rotate"><div><h2>GIRE O CELULAR</h2><p>O jogo foi pensado para a tela horizontal.</p></div></div>
+<canvas id="game"></canvas>
+<div id="hud" class="hidden">
+ <div class="hudrow"><div class="readout"><b id="room">ALA DE EMERGÊNCIA</b><br><span>CAPÍTULO 1 · O DESPERTAR</span></div><div class="readout">SAÚDE <b id="hp">100%</b><div class="meter"><span id="hpbar" style="width:100%"></span></div><br>FOLEGO <b id="st">100%</b><div class="meter"><span id="stbar" style="width:100%"></span></div></div></div>
+ <div id="objective" class="readout">OBJETIVO · Descubra o que aconteceu.</div><div id="prompt"></div>
+</div>
+<div id="controls" class="hidden"><div id="joy"><div id="stick"></div></div><div id="look"></div><div id="buttons"><button class="ctrl" id="flash">LUZ</button><button class="ctrl" id="run">CORRER</button><button class="ctrl" id="crouch">AGACHAR</button><button class="ctrl" id="hide">ESCONDER</button><button class="ctrl main" id="action">USAR</button></div></div>
 <div id="toast"></div>
-<div id="modal"><div class="sheetHead"><strong id="modalTitle"></strong><button class="close" id="modalClose">×</button></div><div class="sheetBody" id="modalBody"></div></div>
-
-<section id="playOverlay">
- <canvas id="gameCanvas"></canvas>
- <div id="gameHud">
-  <div id="gameTop"><div class="hp"><i id="hpbar"></i></div><div class="pill">♥ <span id="hpText">100</span></div><div id="objective">Objetivo: explorar a área</div></div>
-  <div id="joy"><div id="knob"></div></div>
-  <button class="gameAction small" id="runBtn">🏃</button><button class="gameAction" id="actBtn">◎</button>
-  <div id="dialogue"><b id="speaker"></b><p id="dialogueText"></p><button id="dialogueNext">CONTINUAR</button></div>
- </div>
-</section>
-
-<input id="assetInput" type="file" accept="image/*,audio/*" multiple hidden>
-<input id="projectInput" type="file" accept=".ohospital,.json,application/json" hidden>
-
+<div class="overlay" id="menu"><div class="card"><div class="kicker">Experiência de terror e sobrevivência · 2.5D</div><h1>O HOSPITAL</h1><div class="kicker">CAPÍTULO 1 — O DESPERTAR</div><p>Você desperta em uma ala hospitalar abandonada. A energia caiu. Há sinais de evacuação, registros incompletos e algo faminto vagando pelos corredores. Encontre respostas — e uma saída.</p><div class="menuBtns"><button type="button" id="start">INICIAR JOGO</button><button type="button" id="settingsOpen">CONFIGURAÇÕES</button><button id="friend" disabled>JOGAR COM AMIGO · EM BREVE</button></div><div class="subtle">SEM ÁUDIO NESTA VERSÃO · 1 ANDAR · CAPÍTULO 1</div></div></div>
+<div class="overlay hidden" id="settings"><div class="card"><div class="kicker">Preferências</div><h2>CONFIGURAÇÕES</h2><div class="setting"><span>Brilho do cenário</span><input id="brightness" type="range" min=".65" max="1.35" step=".05" value="1"></div><div class="setting"><span>Escala da interface</span><input id="uiScale" type="range" min=".85" max="1.2" step=".05" value="1"></div><div class="setting"><span>Reduzir efeitos visuais</span><input id="reduced" type="checkbox"></div><p class="subtle">As opções são aplicadas imediatamente nesta sessão.</p><button type="button" id="settingsBack">VOLTAR</button></div></div>
+<div class="overlay hidden" id="story"><div class="card"><div class="kicker">Registro encontrado</div><h2 id="storyTitle"></h2><p id="storyText"></p><button id="storyNext">CONTINUAR</button></div></div>
+<div class="overlay hidden" id="puzzle"><div class="card"><div class="kicker">Interação</div><h2 id="puzzleTitle">PAINEL ELÉTRICO</h2><p id="puzzleText"></p><div id="puzzleChoices"></div><button id="puzzleClose">FECHAR</button></div></div>
+<div class="overlay hidden" id="death"><div class="card"><h1>VOCÊ CAIU</h1><p>O hospital permanece em silêncio. Tente novamente e observe os corredores.</p><button onclick="location.reload()">RECOMEÇAR</button></div></div>
+<div class="overlay hidden" id="ending"><div class="card"><div class="kicker">Capítulo concluído</div><h1>FIM DO CAPÍTULO</h1><p id="endingText"></p><button onclick="location.reload()">JOGAR NOVAMENTE</button></div></div>
 <script>
-'use strict';
-const $=id=>document.getElementById(id);
-const canvas=$('canvas'),ctx=canvas.getContext('2d');
-const gameCanvas=$('gameCanvas'),gctx=gameCanvas.getContext('2d');
-let DPR=Math.min(devicePixelRatio||1,2);
-let view={x:0,y:0,z:1}, selected=null, drag=null, pan=null, pointers=new Map(), mode='build', pendingType=null, grid=true;
-let undo=[],redo=[];
-
-const ASSETS=[
- ['AMBIENTE',[['floor','▦','Piso clínico'],['wall','▥','Parede hospitalar'],['door','🚪','Porta'],['window','▱','Janela'],['column','▥','Coluna']]],
- ['MÓVEIS',[['bed','▰','Cama'],['stretcher','▱','Maca'],['desk','▰','Balcão'],['chair','◼','Cadeira'],['locker','▥','Armário'],['shelf','▤','Estante'],['crate','□','Caixa']]],
- ['ATMOSFERA',[['lamp','◉','Lâmpada'],['blood','●','Sangue'],['corpse','▬','Corpo'],['paper','▤','Documento'],['trash','◆','Lixo'],['plant','♣','Planta']]],
- ['GAMEPLAY',[['player','●','Jogador'],['enemy','◉','Infectado'],['item','◇','Item'],['weapon','†','Arma'],['safe','▣','Cofre'],['trigger','◌','Evento'],['npc','●','NPC']]]
+(()=>{'use strict';
+const canvas=document.getElementById('game'),ctx=canvas.getContext('2d');
+let W=innerWidth,H=innerHeight,dpr=1,scale=1,brightness=1,reduced=false;
+const settings={brightness:1,uiScale:1,reduced:false};
+function resize(){dpr=Math.min(devicePixelRatio||1,1.5);W=innerWidth;H=innerHeight;canvas.width=Math.round(W*dpr);canvas.height=Math.round(H*dpr);canvas.style.width=W+'px';canvas.style.height=H+'px';ctx.setTransform(dpr,0,0,dpr,0,0)}addEventListener('resize',resize);resize();
+const TILE=64, mapW=37,mapH=27;
+const grid=Array.from({length:mapH},()=>Array(mapW).fill(1));
+function carve(x,y,w,h){for(let j=y;j<y+h;j++)for(let i=x;i<x+w;i++)if(grid[j]&&grid[j][i]!==undefined)grid[j][i]=0}
+function rectWall(x,y,w,h){for(let j=y;j<y+h;j++)for(let i=x;i<x+w;i++)if(grid[j]&&grid[j][i]!==undefined)grid[j][i]=1}
+carve(13,1,11,5);carve(13,6,11,3);carve(8,9,21,4);carve(13,13,11,4);carve(13,17,11,3);carve(4,9,4,8);carve(29,9,4,8);carve(4,17,29,3);carve(13,20,11,5);
+carve(10,11,3,1);carve(24,11,5,1);carve(17,5,3,4);carve(17,13,3,4);carve(17,17,3,3);carve(17,20,3,5);
+const rooms=[{n:'ALA DE EMERGÊNCIA',x:13,y:1,w:11,h:5},{n:'RECEPÇÃO',x:8,y:9,w:21,h:4},{n:'ENFERMARIA',x:4,y:9,w:4,h:8},{n:'FARMÁCIA',x:29,y:9,w:4,h:8},{n:'UTI',x:13,y:13,w:11,h:4},{n:'MANUTENÇÃO',x:13,y:20,w:11,h:5},{n:'SAÍDA PRINCIPAL',x:17,y:23,w:3,h:2}];
+const furniture=[];
+function prop(x,y,w,h,type='cabinet',block=true){furniture.push({x,y,w,h,type,block})}
+prop(15,3,2,1,'bed');prop(20,3,2,1,'bed');prop(17,10,3,1,'desk');prop(22,10,2,1,'cabinet');prop(5,11,1,2,'bed');prop(5,15,1,2,'bed');prop(31,11,1,2,'shelf');prop(31,15,1,2,'shelf');prop(15,14,2,1,'bed');prop(21,14,2,1,'bed');prop(15,22,2,1,'crate');prop(22,23,1,2,'generator');prop(16,2,1.2,.55,'locker');prop(21.5,2,1.2,.55,'locker');prop(6,14,1.1,.55,'locker');prop(30,16,1.1,.55,'locker');prop(25,10,1,.5,'chair',false);prop(12,11,.6,.6,'stretcher',false);
+const doors=[{x:18.5,y:8.7,axis:'h',name:'porta corta-fogo',open:false,locked:true},{x:12.9,y:11,axis:'v',name:'porta da enfermaria',open:false,locked:false},{x:28.9,y:11,axis:'v',name:'porta da farmácia',open:false,locked:true},{x:18.5,y:19.8,axis:'h',name:'porta da manutenção',open:false,locked:false}];
+const objects=[
+ {id:'chart',x:14.5,y:4.5,label:'Ler prontuário',kind:'note',title:'PRONTUÁRIO 237',text:'Paciente transferido da ala de emergência para a UTI após apresentar comportamento agressivo. A equipe relata que a contenção elétrica ainda funciona. Nota manuscrita: “Não desliguem o gerador. A porta corta-fogo depende dele.”'},
+ {id:'panel',x:22,y:23,label:'Examinar gerador',kind:'generator'},
+ {id:'key',x:30.5,y:10.5,label:'Pegar chave da farmácia',kind:'key'},
+ {id:'cabinet',x:31,y:13,label:'Examinar armário',kind:'cabinet'},
+ {id:'letter',x:6,y:16,label:'Ler bilhete dobrado',kind:'note2',title:'BILHETE DA ENFERMEIRA',text:'“O código do cofre não está no teclado nem na sala. O Dr. A. repetia que a data do primeiro caso jamais deveria ser esquecida. Está no relatório de admissão, arquivado na recepção.”'},
+ {id:'report',x:10,y:10.5,label:'Ler relatório de admissão',kind:'report'},
+ {id:'safe',x:27,y:12,label:'Abrir cofre',kind:'safe'},
+ {id:'card',x:15,y:15.5,label:'Pegar cartão de acesso',kind:'card'},
+ {id:'exit',x:18.5,y:24.5,label:'Usar cartão na saída',kind:'exit'}
 ];
-const T={
- floor:{w:1,h:1,solid:false},wall:{w:1,h:.45,solid:true},door:{w:1,h:.25,solid:true,open:false,locked:false},
- window:{w:1,h:.12,solid:true},column:{w:.45,h:.45,solid:true},bed:{w:1.9,h:.75,solid:true,interactive:true},
- stretcher:{w:1.8,h:.6,solid:true},desk:{w:1.7,h:.7,solid:true},chair:{w:.65,h:.65,solid:true},locker:{w:.75,h:.45,solid:true,interactive:true},
- shelf:{w:1.6,h:.45,solid:true},crate:{w:.75,h:.75,solid:true},lamp:{w:.25,h:.25,light:true,radius:4},blood:{w:1,h:.6},
- corpse:{w:1.3,h:.55,interactive:true},paper:{w:.45,h:.35,interactive:true},trash:{w:.55,h:.55},plant:{w:.65,h:.65},
- player:{w:.55,h:.55,solid:true},enemy:{w:.58,h:.58,solid:true,speed:1.3,damage:12,vision:6},item:{w:.4,h:.4,interactive:true,itemId:'chave'},
- weapon:{w:.5,h:.25,interactive:true,itemId:'faca'},safe:{w:.85,h:.6,solid:true,interactive:true,code:'1409'},trigger:{w:1.8,h:1.8},npc:{w:.55,h:.55,interactive:true}
+let hidden=false;let state={power:false,key:false,pharmacy:false,clue:false,code:false,card:false,report:false,read:false,done:false};
+const player={x:18.5,y:3.8,r:.24,angle:Math.PI/2,hp:100,st:100,crouch:false,run:false,flash:true};
+const zombies=[
+ {x:6,y:12.5,homeX:6,homeY:12.5,dir:0,mode:'patrol',alert:0,hp:1,step:0},
+ {x:31,y:17,homeX:31,homeY:17,dir:Math.PI,mode:'patrol',alert:0,hp:1,step:1},
+ {x:19,y:21.5,homeX:19,homeY:21.5,dir:0,mode:'patrol',alert:0,hp:1,step:2}
+];
+const keys={};let running=false,playing=false,yaw=0,joystick={x:0,y:0},joyId=null,lookId=null,lastLook=null,toastTimer;
+const $=id=>document.getElementById(id);
+function toast(s){$('toast').textContent=s;$('toast').classList.add('show');clearTimeout(toastTimer);toastTimer=setTimeout(()=>$('toast').classList.remove('show'),2200)}
+function setObj(s){$('objective').textContent='OBJETIVO · '+s}
+function showStory(title,text){$('storyTitle').textContent=title;$('storyText').textContent=text;$('story').classList.remove('hidden')}
+function inBounds(x,y){return x>=0&&y>=0&&x<mapW&&y<mapH}
+function solid(x,y){if(!inBounds(Math.floor(x),Math.floor(y)))return true;if(grid[Math.floor(y)][Math.floor(x)]===1)return true;if(doors.some(d=>!d.open&&(d.axis==='h'?Math.abs(y-d.y)<.13&&Math.abs(x-d.x)<.52:Math.abs(x-d.x)<.13&&Math.abs(y-d.y)<.52)))return true;return furniture.some(o=>o.block&&x>=o.x-o.w/2-.16&&x<=o.x+o.w/2+.16&&y>=o.y-o.h/2-.16&&y<=o.y+o.h/2+.16)}
+function canMove(x,y,r=.23){return !solid(x-r,y-r)&&!solid(x+r,y-r)&&!solid(x-r,y+r)&&!solid(x+r,y+r)}
+function lineClear(x1,y1,x2,y2){const d=Math.hypot(x2-x1,y2-y1),n=Math.ceil(d*10);for(let i=1;i<n;i++){let t=i/n;if(solid(x1+(x2-x1)*t,y1+(y2-y1)*t))return false}return true}
+function dist(a,b){return Math.hypot(a.x-b.x,a.y-b.y)}
+function showModal(id){$(id).classList.remove('hidden')}
+function closeModal(id){$(id).classList.add('hidden')}
+function nearby(){let best=null,bd=1.15;for(const o of objects){if(o.done)continue;let d=dist(player,o);if(d<bd){best=o;bd=d}}for(const door of doors){const d=dist(player,door);if(d<bd){best={id:'door_'+doors.indexOf(door),x:door.x,y:door.y,label:door.open?'Fechar '+door.name:'Abrir '+door.name,kind:'door',door};bd=d}}return best}
+function interact(){if(!$('story').classList.contains('hidden')||!$('puzzle').classList.contains('hidden')||!$('ending').classList.contains('hidden'))return;let o=nearby();if(!o)return;
+ switch(o.kind){
+ case'door':if(o.door.locked&&!state.key&&!state.power){toast('A porta está trancada. Procure uma chave ou restaure a energia.');return}o.door.open=!o.door.open;toast(o.door.open?'Porta aberta.':'Porta fechada.');break;
+ case'note':o.done=true;state.read=true;showStory(o.title,o.text);setObj('Restaure a energia na manutenção.');break;
+ case'note2':o.done=true;state.clue=true;showStory(o.title,o.text);setObj('Encontre o relatório de admissão na recepção.');break;
+ case'report':o.done=true;state.report=true;showStory('RELATÓRIO DE ADMISSÃO','Paciente 001 — primeiro caso registrado em 14/09. No rodapé, alguém escreveu: “A data é a chave. Use quatro algarismos, dia e mês.”');setObj('Descubra o código do cofre.');break;
+ case'generator':if(!state.read){toast('Leia o prontuário antes de mexer no gerador.');return}openPuzzle('generator');break;
+ case'key':if(!state.power){toast('O compartimento está sem energia.');return}o.done=true;state.key=true;toast('CHAVE DA FARMÁCIA OBTIDA.');setObj('Abra o armário da farmácia e procure o cartão.');break;
+ case'cabinet':if(!state.key){toast('O armário está trancado. Precisa da chave da farmácia.');return}o.done=true;showStory('RECADO NO ARMÁRIO','“O cartão da UTI foi deixado na sala de observação. Se a porta principal ainda estiver fechada, o cofre da recepção guarda suprimentos de emergência.”');state.pharmacy=true;setObj('Encontre o cartão de acesso na UTI.');break;
+ case'safe':if(!state.clue||!state.report){toast('Faltam pistas nos documentos do hospital.');return}openPuzzle('safe');break;
+ case'card':if(!state.pharmacy){toast('Você ainda não sabe onde procurar o cartão.');return}o.done=true;state.card=true;toast('CARTÃO DE ACESSO ENCONTRADO.');setObj('Volte à saída principal.');break;
+ case'exit':if(!state.card){toast('A saída exige um cartão de acesso.');return}showStory('A PORTA','O leitor pisca verde. A porta se abre com dificuldade. Do lado de fora, a cidade está sem luz; ao longe, uma sirene interrompe o silêncio. Você sobreviveu ao primeiro setor — por enquanto.');$('storyNext').onclick=()=>{closeModal('story');showModal('ending')};break;
+ }}
+function openPuzzle(type){const choices=$('puzzleChoices');choices.innerHTML='';if(type==='generator'){$('puzzleTitle').textContent='PAINEL DO GERADOR';$('puzzleText').textContent='Três disjuntores precisam ser acionados na ordem indicada pelo aviso: estabilize o sistema — 2 → 1 → 3.';let seq=[];[1,2,3].forEach(n=>{let b=document.createElement('button');b.className='choice';b.textContent='ACIONAR DISJUNTOR '+n;b.onclick=()=>{seq.push(n);if(seq.length===3){if(seq.join('')==='213'){state.power=true;objects.find(o=>o.id==='generator').done=true;closeModal('puzzle');toast('ENERGIA RESTAURADA.');setObj('Procure a chave da farmácia.');showStory('ENERGIA RESTAURADA','As lâmpadas de emergência acendem uma a uma. Um ruído pesado ecoa na recepção. Algo percebeu que você está aqui.');}else{seq=[];toast('Sequência incorreta. Tente novamente.')}}};choices.appendChild(b)})}else{$('puzzleTitle').textContent='COFRE DE EMERGÊNCIA';$('puzzleText').textContent='Digite o código de quatro algarismos encontrado nos registros.';let input=document.createElement('input');input.inputMode='numeric';input.maxLength=4;input.placeholder='••••';input.style='font-size:24px;letter-spacing:.4em;text-align:center;width:160px;padding:12px;background:#080c0a;color:#fff;border:1px solid #69756d;border-radius:4px';let b=document.createElement('button');b.className='choice';b.textContent='DESBLOQUEAR';b.onclick=()=>{if(input.value==='1409'){state.code=true;objects.find(o=>o.id==='safe').done=true;closeModal('puzzle');showStory('COFRE ABERTO','Dentro do cofre: duas bandagens, um frasco de analgésico e uma lanterna reserva. Você guarda os recursos.');toast('RECURSOS ADICIONADOS.')}else toast('Código incorreto. Releia os documentos.')};choices.append(input,b)}showModal('puzzle')}
+$('puzzleClose').onclick=()=>closeModal('puzzle');
+function update(dt){let ix=joystick.x,iy=joystick.y;if(keys.KeyW||keys.ArrowUp)iy-=1;if(keys.KeyS||keys.ArrowDown)iy+=1;if(keys.KeyA||keys.ArrowLeft)ix-=1;if(keys.KeyD||keys.ArrowRight)ix+=1;let len=Math.hypot(ix,iy);if(len>1){ix/=len;iy/=len}let moving=len>.08,sprint=(running||keys.ShiftLeft)&&player.st>0&&moving&&!player.crouch;let speed=player.crouch?1.35:sprint?3.45:2.15;let dx=ix*speed*dt,dy=iy*speed*dt;if(moving){player.angle=Math.atan2(dy,dx);if(canMove(player.x+dx,player.y))player.x+=dx;if(canMove(player.x,player.y+dy))player.y+=dy}if(sprint)player.st=Math.max(0,player.st-25*dt);else player.st=Math.min(100,player.st+13*dt);
+ // Zombie perception: visual cone with hard line-of-sight; sound only when moving fast, within range.
+ for(const z of zombies){let d=dist(z,player),ang=Math.atan2(player.y-z.y,player.x-z.x),delta=Math.atan2(Math.sin(ang-z.dir),Math.cos(ang-z.dir));let sees=!hidden&&d<6.4&&Math.abs(delta)<.72&&lineClear(z.x,z.y,player.x,player.y);let noise=moving?(sprint?7.2:player.crouch?0:2.1):0;let hears=!hidden&&noise>0&&d<noise;if(sees||hears){z.mode='chase';z.alert=4.5}else if(z.alert>0)z.alert-=dt;else z.mode='patrol';
+ if(z.mode==='chase'){let a=Math.atan2(player.y-z.y,player.x-z.x);z.dir=a;let s=1.7;let nx=z.x+Math.cos(a)*s*dt,ny=z.y+Math.sin(a)*s*dt;if(canMove(nx,z.y,.22))z.x=nx;if(canMove(z.x,ny,.22))z.y=ny;if(!hidden&&d<.82){z.hit=(z.hit||0)-dt;if(z.hit<=0){z.hit=.95;player.hp=Math.max(0,player.hp-12);toast('UM INFECTADO TE ATINGIU!');if(player.hp<=0)showModal('death')}}}else{z.step+=dt;if(z.step>3.5){z.step=0;z.dir+=((Math.random()-.5)*1.6);z.px=z.homeX+Math.cos(z.dir)*1.3;z.py=z.homeY+Math.sin(z.dir)*1.3}let tx=z.px??z.homeX,ty=z.py??z.homeY,a=Math.atan2(ty-z.y,tx-z.x);if(Math.hypot(tx-z.x,ty-z.y)>.15){z.dir=a;let nx=z.x+Math.cos(a)*.48*dt,ny=z.y+Math.sin(a)*.48*dt;if(canMove(nx,z.y,.22))z.x=nx;if(canMove(z.x,ny,.22))z.y=ny}}}
+ let room=rooms.find(r=>player.x>=r.x&&player.x<r.x+r.w&&player.y>=r.y&&player.y<r.y+r.h);if(room)$('room').textContent=room.n;$('hp').textContent=Math.ceil(player.hp)+'%';$('hpbar').style.width=player.hp+'%';$('st').textContent=Math.ceil(player.st)+'%';$('stbar').style.width=player.st+'%';let o=nearby();$('prompt').style.display=o?'block':'none';if(o)$('prompt').textContent='✋  '+o.label+'  [E]';$('action').classList.toggle('available',!!o);const locker=furniture.some(f=>f.type==='locker'&&Math.hypot(player.x-f.x,player.y-f.y)<1.05);$('hide').classList.toggle('available',hidden||locker);
+}
+function roundRect(x,y,w,h,r){
+  ctx.beginPath();
+  if(ctx.roundRect){ctx.roundRect(x,y,w,h,r)}
+  else{r=Math.min(r,w/2,h/2);ctx.moveTo(x+r,y);ctx.arcTo(x+w,y,x+w,y+h,r);ctx.arcTo(x+w,y+h,x,y+h,r);ctx.arcTo(x,y+h,x,y,r);ctx.arcTo(x,y,x+w,y,r)}
+  ctx.fill();
+}
+
+/* -------------------------------------------------------------------------
+   NOVA RENDERIZAÇÃO — top-down 2.5D
+   A movimentação continua em plano 2D, mas cada elemento recebe altura,
+   faces laterais, sombras e profundidade. Assim a gameplay/colisão continua
+   estável enquanto o cenário deixa de parecer um mapa plano.
+--------------------------------------------------------------------------- */
+const GFX={
+  wallH:38,
+  playerH:44,
+  zombieH:42,
+  lightRadius:.0,
+  fov:.92
 };
-const colors={floor:'#26302b',wall:'#7d8881',door:'#705e48',window:'#4d7280',column:'#5e6862',bed:'#6d7e88',stretcher:'#87918e',desk:'#665a4d',chair:'#777066',locker:'#4b5552',shelf:'#544d43',crate:'#765e45',lamp:'#d7b85e',blood:'#762f32',corpse:'#464b49',paper:'#b8ad8e',trash:'#4b504c',plant:'#42634a',player:'#cde97e',enemy:'#c65c63',item:'#d6bd63',weapon:'#d4d7d2',safe:'#5e6f75',trigger:'#7097b9',npc:'#75a5d6'};
-function uid(){return 'o'+Date.now().toString(36)+Math.random().toString(36).slice(2,6)}
-function cp(v){return JSON.parse(JSON.stringify(v))}
-function obj(type,x,y,extra={}){return {id:uid(),type,x,y,...cp(T[type]||{}),name:extra.name||ASSETS.flatMap(a=>a[1]).find(a=>a[0]===type)?.[2]||type,...extra}}
-function defaultProject(){return {version:7,name:'O HOSPITAL',appVersion:'0.7.0',scene:'Recepção',map:{w:34,h:22,t:34},settings:{ambient:.42,quality:'alta'},objects:[
- obj('floor',17,11,{w:34,h:22,name:'Piso principal'}),obj('wall',17,1,{w:34,h:.45,name:'Parede norte'}),obj('wall',17,21,{w:34,h:.45,name:'Parede sul'}),obj('wall',1,11,{w:.45,h:20,name:'Parede oeste'}),obj('wall',33,11,{w:.45,h:20,name:'Parede leste'}),
- obj('desk',17,5,{name:'Recepção'}),obj('lamp',17,4,{name:'Luz da recepção',radius:5}),obj('bed',9,9,{name:'Maca 01'}),obj('bed',12,9,{name:'Maca 02'}),obj('locker',15,12,{name:'Armário'}),obj('safe',26,15,{name:'Cofre de emergência'}),
- obj('player',17,16,{name:'Paciente'}),obj('enemy',25,10,{name:'Infectado',speed:1.25}),obj('enemy',9,15,{name:'Infectado 2',speed:1.05}),obj('item',22,16,{name:'Chave da farmácia',itemId:'farmacia'}),
- obj('paper',14,6,{name:'Prontuário',message:'Paciente 237 — evacuação interrompida às 03:17.'}),obj('trigger',29,6,{name:'Evento: corredor escuro'}),
- obj('npc',6,6,{name:'Enfermeira',dialogue:'Você não deveria estar aqui. A energia caiu em todo o hospital.'})
-],story:{chapter:'Capítulo 1 — A Última Chamada',intro:'O hospital perdeu energia. Você acorda sozinho na recepção.',objective:'Encontre a chave da farmácia e descubra o que aconteceu.',dialogues:[{speaker:'Enfermeira',text:'Pegue a chave. Não acenda as luzes do corredor.'},{speaker:'Paciente',text:'Quem mais está aqui?'},{speaker:'Enfermeira',text:'Não sei. E não quero descobrir.'}]},audio:{music:true,ambience:true,sfx:true},assets:[]}}
-let project=defaultProject();
+function camInfo(){
+  const viewW=Math.min(W*.92,1120), viewH=Math.min(H*.9,700);
+  const tile=Math.max(32,Math.min(viewW/13.5,viewH/9.2));
+  return {tile,cx:player.x*TILE,cy:player.y*TILE,ox:W/2-player.x*TILE*tile/TILE,oy:H/2-player.y*TILE*tile/TILE};
+}
+function project(wx,wy,tile,ox,oy){
+  /* leve compressão vertical mantém câmera superior, com espaço para paredes */
+  return [ox+wx*TILE*(tile/TILE),oy+wy*TILE*(tile/TILE)];
+}
+function poly(points,fill,stroke=null,lw=1){
+  ctx.beginPath();ctx.moveTo(points[0][0],points[0][1]);
+  for(let i=1;i<points.length;i++)ctx.lineTo(points[i][0],points[i][1]);
+  ctx.closePath();ctx.fillStyle=fill;ctx.fill();
+  if(stroke){ctx.strokeStyle=stroke;ctx.lineWidth=lw;ctx.stroke()}
+}
+function volumeBox(x,y,w,h,depth,top,side,front){
+  const X=x,Y=y;
+  /* sombra */
+  ctx.fillStyle='#0008';ctx.fillRect(X-w/2+5,Y-h/2+depth+8,w,h);
+  /* lateral esquerda/direita e frente */
+  poly([[X-w/2,Y-h/2],[X+w/2,Y-h/2],[X+w/2,Y+h/2],[X-w/2,Y+h/2]],front);
+  poly([[X-w/2,Y-h/2],[X+w/2,Y-h/2],[X+w/2,Y-h/2-depth],[X-w/2,Y-h/2-depth]],top);
+  poly([[X+w/2,Y-h/2-depth],[X+w/2,Y+h/2-depth],[X+w/2,Y+h/2],[X+w/2,Y-h/2]],side);
+  ctx.strokeStyle='#c8d0c844';ctx.lineWidth=1;ctx.strokeRect(X-w/2,Y-h/2-depth,w,h);
+}
+function drawFloorTile(px,py,TILE2,variant){
+  ctx.fillStyle=variant?'#454b45':'#3f4540';ctx.fillRect(px,py,TILE2,TILE2);
+  ctx.strokeStyle='#ffffff0b';ctx.strokeRect(px+.5,py+.5,TILE2-1,TILE2-1);
+  if(variant){
+    ctx.fillStyle='#262c28';ctx.fillRect(px+8,py+12,TILE2*.35,2);
+    ctx.fillRect(px+TILE2*.62,py+TILE2*.7,TILE2*.2,2);
+  }
+}
+function drawWallTile(px,py,TILE2){
+  const d=GFX.wallH;
+  /* face principal */
+  ctx.fillStyle='#252b27';ctx.fillRect(px,py,TILE2,TILE2);
+  /* parede elevada */
+  poly([[px,py],[px+TILE2,py],[px+TILE2,py-d],[px,py-d]],'#343b35','#59635d',1);
+  /* topo */
+  poly([[px,py-d],[px+TILE2,py-d],[px+TILE2-6,py-d-5],[px+6,py-d-5]],'#687168','#8a958b55',1);
+  ctx.fillStyle='#1b201d';ctx.fillRect(px+5,py+TILE2-9,TILE2-10,7);
+  ctx.fillStyle='#59635a';ctx.fillRect(px+4,py+3,TILE2-8,3);
+  /* tijolos/painéis discretos */
+  ctx.strokeStyle='#202621';ctx.lineWidth=1;
+  for(let yy=py-d+9;yy<py-3;yy+=12)ctx.strokeRect(px+2,yy,TILE2-4,10);
+}
+function drawFurniture(f,tile,ox,oy){
+  const [x,y]=project(f.x,f.y,tile,ox,oy),w=f.w*tile,h=f.h*tile;
+  const d=Math.max(9,Math.min(24,(f.w+f.h)*3));
+  let top='#657068',side='#424a44',front='#535b54';
+  if(f.type==='bed'){top='#90958b';side='#515952';front='#70766e'}
+  if(f.type==='generator'){top='#68766d';side='#3d4841';front='#505c54'}
+  if(f.type==='desk'){top='#706757';side='#484238';front='#575047'}
+  if(f.type==='shelf'){top='#655f52';side='#403c34';front='#504b40'}
+  if(f.type==='locker'){top='#59675e';side='#39443d';front='#46534b'}
+  if(f.type==='crate'){top='#75654d';side='#493d2d';front='#5c4e3b'}
+  if(f.type==='chair'){top='#6e7068';side='#454842';front='#595c55'}
+  if(f.type==='stretcher'){top='#7c8279';side='#4b514c';front='#60665e'}
+  volumeBox(x,y,w,h,d,top,side,front);
 
-function toast(s){$('toast').textContent=s;$('toast').style.display='block';clearTimeout(window.__t);window.__t=setTimeout(()=>$('toast').style.display='none',1700)}
-function saveHistory(){undo.push(cp(project));if(undo.length>40)undo.shift();redo=[]}
-$('undo').onclick=()=>{if(undo.length){redo.push(cp(project));project=undo.pop();selected=null;render();toast('Desfeito')}};$('redo').onclick=()=>{if(redo.length){undo.push(cp(project));project=redo.pop();selected=null;render();toast('Refeito')}};
-function resize(){DPR=Math.min(devicePixelRatio||1,2);let r=canvas.getBoundingClientRect();canvas.width=r.width*DPR;canvas.height=r.height*DPR;ctx.setTransform(DPR,0,0,DPR,0,0);fit()}
-addEventListener('resize',resize);
-
-function fit(){let w=canvas.clientWidth,h=canvas.clientHeight,t=project.map.t*view.z;view.z=Math.min((w-120)/(project.map.w*project.map.t),(h-80)/(project.map.h*project.map.t));view.x=(w-project.map.w*project.map.t*view.z)/2;view.y=(h-project.map.h*project.map.t*view.z)/2;draw()}
-function world(sx,sy){return{x:(sx-view.x)/view.z/project.map.t,y:(sy-view.y)/view.z/project.map.t}}
-function screen(x,y){return{x:view.x+x*project.map.t*view.z,y:view.y+y*project.map.t*view.z}}
-function hit(p){for(let i=project.objects.length-1;i>=0;i--){let o=project.objects[i];if(Math.abs(p.x-o.x)<=o.w/2&&Math.abs(p.y-o.y)<=o.h/2)return o}return null}
-function shade(hex,a){let n=parseInt(hex.slice(1),16),r=n>>16,g=n>>8&255,b=n&255;let f=a;return `rgb(${Math.round(r*f)},${Math.round(g*f)},${Math.round(b*f)})`}
-function drawObj(o){
- let s=screen(o.x,o.y),w=o.w*project.map.t*view.z,h=o.h*project.map.t*view.z;
- if(o.type==='floor'){ctx.fillStyle='#202a25';ctx.fillRect(s.x-w/2,s.y-h/2,w,h);return}
- let c=colors[o.type]||'#777';let lift=(o.type==='wall'||o.type==='column'||o.type==='door')?Math.min(18,h*.35):Math.min(8,h*.2);
- ctx.save();ctx.translate(s.x,s.y);
- ctx.fillStyle='#0008';ctx.beginPath();ctx.ellipse(5,h*.42,Math.max(8,w*.42),Math.max(3,h*.13),0,0,Math.PI*2);ctx.fill();
- if(o.type==='lamp'){let g=ctx.createRadialGradient(0,0,3,0,0,w*3);g.addColorStop(0,'#fff7c2aa');g.addColorStop(1,'#fff7c200');ctx.fillStyle=g;ctx.beginPath();ctx.arc(0,0,w*3,0,Math.PI*2);ctx.fill()}
- ctx.fillStyle=shade(c,.72);ctx.fillRect(-w/2,-h/2+lift,w,h);
- ctx.fillStyle=c;ctx.fillRect(-w/2,-h/2,w,h);
- ctx.fillStyle='#ffffff20';ctx.fillRect(-w/2,-h/2,w,Math.max(2,h*.12));
- if(o.type==='bed'){ctx.fillStyle='#b9c2bf';ctx.fillRect(-w*.38,-h*.26,w*.76,h*.52);ctx.fillStyle='#8c9995';ctx.fillRect(w*.18,-h*.23,w*.2,h*.45)}
- if(o.type==='enemy'){ctx.fillStyle='#1a1d1b';ctx.beginPath();ctx.arc(-w*.16,-h*.1,3,0,7);ctx.arc(w*.16,-h*.1,3,0,7);ctx.fill()}
- if(o.type==='player'||o.type==='npc'){ctx.fillStyle='#e9eee7';ctx.beginPath();ctx.arc(0,-h*.16,Math.max(5,w*.24),0,7);ctx.fill()}
- if(o.type==='lamp'){ctx.fillStyle='#fff1a1';ctx.beginPath();ctx.arc(0,0,Math.max(4,w*.2),0,7);ctx.fill()}
- if(o.type==='safe'){ctx.strokeStyle='#d4e1df';ctx.lineWidth=2;ctx.strokeRect(-w*.25,-h*.18,w*.5,h*.36)}
- if(o.type==='item'||o.type==='weapon'){ctx.strokeStyle='#fff2b2';ctx.lineWidth=3;ctx.beginPath();ctx.moveTo(-w*.2,0);ctx.lineTo(0,-h*.25);ctx.lineTo(w*.2,0);ctx.lineTo(0,h*.25);ctx.closePath();ctx.stroke()}
- if(o.id===selected){ctx.strokeStyle='#dff59a';ctx.lineWidth=2.5;ctx.setLineDash([6,4]);ctx.strokeRect(-w/2-4,-h/2-4,w+8,h+8);ctx.setLineDash([])}
- ctx.restore();
+  if(f.type==='bed'){
+    ctx.fillStyle='#c2c5b8';ctx.fillRect(x-w*.44,y-h*.38-d,w*.28,h*.76);
+    ctx.fillStyle='#676e66';ctx.fillRect(x-w*.12,y-h*.38-d,w*.52,h*.76);
+    ctx.strokeStyle='#d9ded555';ctx.strokeRect(x-w*.42,y-h*.34-d,w*.24,h*.68);
+  } else if(f.type==='generator'){
+    ctx.fillStyle='#aeb9ad';ctx.fillRect(x-8,y-7-d,16,8);
+    ctx.fillStyle='#8c3d35';ctx.beginPath();ctx.arc(x,y+9,5,0,Math.PI*2);ctx.fill();
+    ctx.fillStyle='#b8c4ba';ctx.fillRect(x-18,y+5,10,3);
+  } else if(f.type==='locker'){
+    ctx.fillStyle='#9ba69d';ctx.fillRect(x+10,y-8-d,3,13);
+    ctx.strokeStyle='#b9c2bb66';ctx.strokeRect(x-w*.37,y-h*.36-d,w*.74,h*.72);
+  } else if(f.type==='shelf'){
+    ctx.strokeStyle='#a9afa866';ctx.lineWidth=2;
+    for(let q=-.25;q<=.25;q+=.25)ctx.strokeRect(x-w*.38,y+h*q-d,w*.76,2);
+  } else if(f.type==='chair'){
+    ctx.fillStyle='#747a72';ctx.fillRect(x-w*.3,y-h*.25-d,w*.6,h*.2);
+  }
+}
+function drawCharacter(x,y,angle,type,tile,ox,oy,hiddenChar=false){
+  if(hiddenChar)return;
+  const [sx,sy]=project(x,y,tile,ox,oy);
+  const h=type==='player'?GFX.playerH:GFX.zombieH;
+  const bodyW=type==='player'?17:19;
+  const skin=type==='player'?'#c49b7d':'#879083';
+  const coat=type==='player'?'#344f43':'#4b554c';
+  ctx.save();ctx.translate(sx,sy);
+  /* sombra */
+  ctx.fillStyle='#0009';ctx.beginPath();ctx.ellipse(0,10,18,8,0,0,Math.PI*2);ctx.fill();
+  /* pernas com direção: nunca rotaciona o sprite inteiro */
+  const fx=Math.cos(angle),fy=Math.sin(angle),rx=-fy,ry=fx;
+  const legLen=13,legGap=6;
+  function limb(off,side){
+    const bx=rx*off,by=ry*off, ex=bx+fx*legLen,ey=by+fy*legLen;
+    ctx.strokeStyle=type==='player'?'#172820':'#30362f';ctx.lineWidth=5;ctx.lineCap='round';
+    ctx.beginPath();ctx.moveTo(bx,by+5);ctx.lineTo(ex,ey+5);ctx.stroke();
+  }
+  limb(-legGap,-1);limb(legGap,1);
+  /* tronco */
+  ctx.fillStyle=coat;
+  const bx=-bodyW/2,by=-bodyW/2;
+  roundRect(bx,by,bodyW,27,6);
+  ctx.strokeStyle='#ffffff18';ctx.strokeRect(bx+2,by+2,bodyW-4,23);
+  /* braços acompanham direção */
+  ctx.strokeStyle=type==='player'?'#c49b7d':'#879083';ctx.lineWidth=4;ctx.lineCap='round';
+  ctx.beginPath();
+  ctx.moveTo(-bodyW*.42,0);ctx.lineTo(-bodyW*.7+fx*7,7+fy*7);
+  ctx.moveTo(bodyW*.42,0);ctx.lineTo(bodyW*.7+fx*7,7+fy*7);ctx.stroke();
+  /* cabeça */
+  ctx.fillStyle=skin;ctx.beginPath();ctx.arc(0,-h*.72,9,0,Math.PI*2);ctx.fill();
+  ctx.fillStyle=type==='player'?'#202923':'#343a34';ctx.beginPath();ctx.arc(0,-h*.78,9,Math.PI,Math.PI*2);ctx.fill();
+  /* rosto voltado para a direção */
+  const ex=fx*5,ey=fy*5-h*.72;
+  ctx.fillStyle=type==='player'?'#e1e6d9':'#a84e49';
+  ctx.beginPath();ctx.arc(ex-rx*3,ey-ry*3,1.7,0,Math.PI*2);ctx.arc(ex+rx*3,ey+ry*3,1.7,0,Math.PI*2);ctx.fill();
+  if(type==='player'){ctx.fillStyle='#e1e6d9';ctx.fillRect(fx*6-2,fy*6-3,4,10)}
+  else{ctx.strokeStyle='#30362f';ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(fx*4-rx*5,fy*4-ry*5);ctx.lineTo(fx*4+rx*5,fy*4+ry*5);ctx.stroke()}
+  ctx.restore();
+}
+function drawFlashlight(tile,ox,oy){
+  const [px,py]=project(player.x,player.y,tile,ox,oy);
+  /* iluminação ambiente */
+  ctx.fillStyle=`rgba(2,4,3,${(player.flash?.60:.78)/Math.max(.65,brightness)})`;
+  ctx.fillRect(0,0,W,H);
+  if(!player.flash)return;
+  ctx.save();
+  ctx.globalCompositeOperation='screen';
+  const maxR=Math.min(W,H)*.58;
+  /* halo central */
+  let g=ctx.createRadialGradient(px,py,3,px,py,maxR*.48);
+  g.addColorStop(0,'rgba(245,241,205,.42)');
+  g.addColorStop(.25,'rgba(225,228,195,.20)');
+  g.addColorStop(1,'rgba(225,228,195,0)');
+  ctx.fillStyle=g;ctx.beginPath();ctx.arc(px,py,maxR*.48,0,Math.PI*2);ctx.fill();
+  /* cone */
+  const a=player.angle;
+  let cone=ctx.createRadialGradient(px,py,5,px+Math.cos(a)*maxR*.58,py+Math.sin(a)*maxR*.58,maxR*.72);
+  cone.addColorStop(0,'rgba(255,251,220,.34)');
+  cone.addColorStop(.42,'rgba(235,236,204,.16)');
+  cone.addColorStop(1,'rgba(235,236,204,0)');
+  ctx.fillStyle=cone;ctx.beginPath();ctx.moveTo(px,py);ctx.arc(px,py,maxR,a-GFX.fov,a+GFX.fov);ctx.closePath();ctx.fill();
+  /* foco na direção */
+  const beamLen=maxR*.75;
+  ctx.strokeStyle='rgba(255,252,225,.13)';ctx.lineWidth=12;ctx.lineCap='round';
+  ctx.beginPath();ctx.moveTo(px,py);ctx.lineTo(px+Math.cos(a)*beamLen,py+Math.sin(a)*beamLen);ctx.stroke();
+  ctx.restore();
+  /* vinheta */
+  let vg=ctx.createRadialGradient(W/2,H/2,Math.min(W,H)*.30,W/2,H/2,Math.max(W,H)*.72);
+  vg.addColorStop(0,'rgba(0,0,0,0)');
+  vg.addColorStop(.65,'rgba(0,0,0,.08)');
+  vg.addColorStop(1,'rgba(0,0,0,.70)');
+  ctx.fillStyle=vg;ctx.fillRect(0,0,W,H);
 }
 function draw(){
- let w=canvas.clientWidth,h=canvas.clientHeight;ctx.clearRect(0,0,w,h);
- let bg=ctx.createLinearGradient(0,0,0,h);bg.addColorStop(0,'#0a0f0c');bg.addColorStop(1,'#111915');ctx.fillStyle=bg;ctx.fillRect(0,0,w,h);
- ctx.save();ctx.translate(view.x,view.y);ctx.scale(view.z,view.z);ctx.translate(-view.x/view.z,-view.y/view.z);
- // grid is drawn in screen/world hybrid for crispness
- ctx.restore();
- ctx.save();ctx.translate(view.x,view.y);ctx.scale(view.z,view.z);
- let t=project.map.t, mw=project.map.w*t,mh=project.map.h*t;
- ctx.fillStyle='#161e1a';ctx.fillRect(0,0,mw,mh);
- if(grid){ctx.strokeStyle='#27332c';ctx.lineWidth=1/view.z;for(let x=0;x<=project.map.w;x++){ctx.beginPath();ctx.moveTo(x*t,0);ctx.lineTo(x*t,mh);ctx.stroke()}for(let y=0;y<=project.map.h;y++){ctx.beginPath();ctx.moveTo(0,y*t);ctx.lineTo(mw,y*t);ctx.stroke()}}
- ctx.restore();
- [...project.objects].sort((a,b)=>(a.y+a.h)-(b.y+b.h)).forEach(drawObj);
- if(selected){let s=screen(selected.x,selected.y);$('selectionHud').style.display='block';$('selectionHud').style.left=(s.x-10)+'px';$('selectionHud').style.top=(s.y-selected.h*project.map.t*view.z/2-18)+'px';$('selectionLabel').textContent=selected.name}else $('selectionHud').style.display='none';
-}
-function render(){draw();renderSheet()}
-canvas.addEventListener('pointerdown',e=>{
- pointers.set(e.pointerId,{x:e.clientX,y:e.clientY});
- let p=world(e.offsetX,e.offsetY);
- if(pendingType){saveHistory();let o=obj(pendingType,Math.round(p.x*2)/2,Math.round(p.y*2)/2);project.objects.push(o);selected=o;pendingType=null;toast(o.name+' colocado');render();return}
- let o=hit(p);
- if(o){selected=o;drag={o,dx:p.x-o.x,dy:p.y-o.y};renderSheet();draw()}else{selected=null;pan={x:e.clientX,y:e.clientY,vx:view.x,vy:view.y};draw()}
- canvas.setPointerCapture(e.pointerId);
-});
-canvas.addEventListener('pointermove',e=>{if(!pointers.has(e.pointerId))return;let p=world(e.offsetX,e.offsetY);if(drag){drag.o.x=p.x-drag.dx;drag.o.y=p.y-drag.dy;draw()}else if(pan){view.x=pan.vx+(e.clientX-pan.x);view.y=pan.vy+(e.clientY-pan.y);draw()}});
-canvas.addEventListener('pointerup',e=>{pointers.delete(e.pointerId);if(drag){saveHistory();drag=null}pan=null});
-canvas.addEventListener('wheel',e=>{e.preventDefault();let old=view.z;view.z=Math.max(.35,Math.min(3,view.z*(e.deltaY<0?1.08:.92)));let r=canvas.getBoundingClientRect();let sx=e.clientX-r.left,sy=e.clientY-r.top;view.x=sx-(sx-view.x)*(view.z/old);view.y=sy-(sy-view.y)*(view.z/old);draw()},{passive:false});
+  ctx.setTransform(dpr,0,0,dpr,0,0);ctx.clearRect(0,0,W,H);
+  const {tile,cx,cy,ox,oy}=camInfo();
+  ctx.save();
+  /* fundo */
+  ctx.fillStyle='#090d0c';ctx.fillRect(0,0,W,H);
 
-function setMode(m){mode=m;document.querySelectorAll('[data-mode]').forEach(b=>b.classList.toggle('active',b.dataset.mode===m));openSheet(m)}
-document.querySelectorAll('[data-mode]').forEach(b=>b.onclick=()=>setMode(b.dataset.mode));
-function openSheet(m){$('rightSheet').classList.add('open');let titles={build:'Construir',scenes:'Cenas',story:'História',audio:'Áudio',assets:'Arte / Assets'};$('sheetTitle').textContent=titles[m]||m;renderSheet()}
-$('closeSheet').onclick=()=>$('rightSheet').classList.remove('open');
-$('closeBottom').onclick=()=>$('bottomSheet').classList.remove('open');
+  const minX=Math.floor(player.x-W/tile/2)-2,maxX=Math.ceil(player.x+W/tile/2)+2;
+  const minY=Math.floor(player.y-H/tile/2)-2,maxY=Math.ceil(player.y+H/tile/2)+2;
 
-function assetButtons(){let out='';for(let [cat,items] of ASSETS){out+=`<div class="card"><div class="cardTitle">${cat}</div><div class="assetGrid">${items.map(a=>`<button class="asset" data-place="${a[0]}"><div class="ico">${a[1]}</div><div><b>${a[2]}</b><small>toque para colocar</small></div></button>`).join('')}</div></div>`}return out}
-function renderSheet(){
- if(mode==='build')$('sheetBody').innerHTML=`<div class="card"><div class="cardTitle">CRIAÇÃO RÁPIDA</div><button class="bigAction" id="roomBtn">🏥 Montar uma sala pronta</button><button class="bigAction" id="hallBtn">🚪 Criar corredor hospitalar</button><button class="bigAction" id="horrorBtn">☠️ Criar área de horror</button><button class="bigAction" id="clearBtn">🧹 Limpar cena</button></div>`+assetButtons();
- if(mode==='scenes')$('sheetBody').innerHTML=`<div class="card"><div class="cardTitle">CENAS DO JOGO</div>${['Recepção','Enfermaria','UTI','Corredor','Subsolo'].map((s,i)=>`<button class="bigAction" data-scene="${s}">${i===0?'🏥':'▦'} ${s}<span class="pill" style="float:right">${i<2?'EDITANDO':'CRIAR'}</span></button>`).join('')}</div><div class="card"><div class="cardTitle">CONFIGURAÇÃO VISUAL</div><div class="row"><button class="bigAction" id="zoomFit">◫ Enquadrar</button><button class="bigAction" id="gridBtn"># Grade</button></div></div>`;
- if(mode==='story')$('sheetBody').innerHTML=`<div class="card"><div class="cardTitle">CAPÍTULO</div><div class="field"><label>TÍTULO</label><input id="storyTitle" value="${esc(project.story.chapter)}"></div><div class="field"><label>ABERTURA</label><textarea id="storyIntro">${esc(project.story.intro)}</textarea></div><div class="field"><label>OBJETIVO ATUAL</label><input id="storyObj" value="${esc(project.story.objective)}"></div><button class="bigAction" id="addDialogue">＋ Adicionar diálogo</button></div><div class="card"><div class="cardTitle">DIÁLOGOS</div>${project.story.dialogues.map((d,i)=>`<div class="listItem"><div class="grow"><b>${esc(d.speaker)}</b><small>${esc(d.text)}</small></div><button class="miniBtn" data-dialog="${i}">✎</button></div>`).join('')}</div>`;
- if(mode==='audio')$('sheetBody').innerHTML=`<div class="card"><div class="cardTitle">SISTEMA DE ÁUDIO</div><button class="bigAction" id="musicToggle">🎵 Música: ${project.audio.music?'ATIVA':'DESLIGADA'}</button><button class="bigAction" id="ambToggle">🌧 Ambiente: ${project.audio.ambience?'ATIVO':'DESLIGADO'}</button><button class="bigAction" id="sfxToggle">💥 Efeitos: ${project.audio.sfx?'ATIVOS':'DESLIGADOS'}</button><button class="bigAction" id="testSfx">🔊 Testar som</button></div><div class="card"><div class="cardTitle">IMPORTAR</div><button class="bigAction" id="importAudio">＋ Importar música / efeito</button><small style="color:var(--muted)">Arquivos de áudio ficam associados ao projeto e podem ser usados nas cenas.</small></div>`;
- if(mode==='assets')$('sheetBody').innerHTML=`<div class="card"><div class="cardTitle">BIBLIOTECA</div><button class="bigAction" id="importAssets">＋ Importar imagens / texturas / sons</button><button class="bigAction" id="projectInfo">⚙ Configurações do jogo</button></div><div class="card"><div class="cardTitle">ARTE PROCEDURAL</div><button class="bigAction" id="generateHospital">✨ Gerar decoração hospitalar</button><button class="bigAction" id="generateHorror">🌑 Gerar atmosfera de horror</button></div>`;
- document.querySelectorAll('[data-place]').forEach(b=>b.onclick=()=>{pendingType=b.dataset.place;toast('Agora toque no cenário para colocar');});
- $('roomBtn')?.addEventListener('click',()=>presetRoom());$('hallBtn')?.addEventListener('click',()=>presetHall());$('horrorBtn')?.addEventListener('click',()=>presetHorror());$('clearBtn')?.addEventListener('click',()=>{saveHistory();project.objects=project.objects.filter(o=>o.type==='floor');selected=null;render()});
- document.querySelectorAll('[data-scene]').forEach(b=>b.onclick=()=>{project.scene=b.dataset.scene;toast('Cena selecionada: '+b.dataset.scene);});
- $('zoomFit')?.addEventListener('click',fit);$('gridBtn')?.addEventListener('click',()=>{grid=!grid;draw()});
- $('storyTitle')?.addEventListener('change',e=>project.story.chapter=e.target.value);$('storyIntro')?.addEventListener('change',e=>project.story.intro=e.target.value);$('storyObj')?.addEventListener('change',e=>project.story.objective=e.target.value);
- $('addDialogue')?.addEventListener('click',()=>{project.story.dialogues.push({speaker:'Personagem',text:'Novo diálogo...'});renderSheet()});
- document.querySelectorAll('[data-dialog]').forEach(b=>b.onclick=()=>editDialogue(+b.dataset.dialog));
- $('musicToggle')?.addEventListener('click',()=>{project.audio.music=!project.audio.music;renderSheet()});$('ambToggle')?.addEventListener('click',()=>{project.audio.ambience=!project.audio.ambience;renderSheet()});$('sfxToggle')?.addEventListener('click',()=>{project.audio.sfx=!project.audio.sfx;renderSheet()});
- $('testSfx')?.addEventListener('click',beep);$('importAudio')?.addEventListener('click',()=>$('assetInput').click());$('importAssets')?.addEventListener('click',()=>$('assetInput').click());$('projectInfo')?.addEventListener('click',projectSettings);
- $('generateHospital')?.addEventListener('click',presetHospitalDecor);$('generateHorror')?.addEventListener('click',presetHorror);
- if(selected&&mode==='build') renderInspector();
-}
-function renderInspector(){
- if(!selected)return;
- let o=selected;
- $('sheetBody').insertAdjacentHTML('afterbegin',`<div class="card"><div class="cardTitle">SELECIONADO</div><div class="field"><label>NOME</label><input id="objName" value="${esc(o.name)}"></div><div class="row"><button class="bigAction" id="dup">⧉ Duplicar</button><button class="bigAction" id="del">🗑 Excluir</button></div></div>`);
- $('objName').onchange=e=>{saveHistory();o.name=e.target.value;draw()};
- $('dup').onclick=()=>{saveHistory();let n=cp(o);n.id=uid();n.x+=.8;n.y+=.8;n.name=o.name+' cópia';project.objects.push(n);selected=n;render()};
- $('del').onclick=()=>{saveHistory();project.objects=project.objects.filter(x=>x.id!==o.id);selected=null;render()};
-}
-function editDialogue(i){let d=project.story.dialogues[i];modal('Editar diálogo',`<div class="field"><label>PERSONAGEM</label><input id="ds" value="${esc(d.speaker)}"></div><div class="field"><label>FALA</label><textarea id="dt">${esc(d.text)}</textarea></div><button class="bigAction" id="ok">SALVAR</button>`);$('ok').onclick=()=>{d.speaker=$('ds').value;d.text=$('dt').value;closeModal();renderSheet()}}
-function modal(title,body){$('modalTitle').textContent=title;$('modalBody').innerHTML=body;$('modal').classList.add('open')}
-function closeModal(){$('modal').classList.remove('open')}$('modalClose').onclick=closeModal;
-function projectSettings(){modal('Configurações do jogo',`<div class="field"><label>NOME DO JOGO</label><input id="pn" value="${esc(project.name)}"></div><div class="field"><label>VERSÃO</label><input id="pv" value="${esc(project.appVersion)}"></div><div class="field"><label>QUALIDADE</label><select id="pq"><option ${project.settings.quality==='alta'?'selected':''}>alta</option><option ${project.settings.quality==='média'?'selected':''}>média</option><option>baixa</option></select></div><button class="bigAction" id="ps">SALVAR</button><button class="bigAction" id="exp">⬇ Exportar projeto</button><button class="bigAction" id="imp">⬆ Importar projeto</button>`);$('ps').onclick=()=>{project.name=$('pn').value;project.appVersion=$('pv').value;project.settings.quality=$('pq').value;$('projectName').textContent=project.name;closeModal()};$('exp').onclick=exportProject;$('imp').onclick=()=>$('projectInput').click()}
-function esc(s){return String(s??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]))}
-function presetRoom(){saveHistory();for(let x=6;x<=28;x+=3)project.objects.push(obj('bed',x,8),obj('lamp',x,6));for(let x=5;x<=29;x+=4)project.objects.push(obj('locker',x,13));toast('Enfermaria criada');render()}
-function presetHall(){saveHistory();for(let x=4;x<31;x+=2)project.objects.push(obj('lamp',x,4),obj('lamp',x,18));project.objects.push(obj('door',16,4),obj('door',24,4),obj('door',16,18));toast('Corredor criado');render()}
-function presetHorror(){saveHistory();for(let i=0;i<10;i++)project.objects.push(obj('blood',6+Math.random()*22,5+Math.random()*12),obj('trash',6+Math.random()*22,5+Math.random()*12));project.objects.push(obj('corpse',13,12),obj('enemy',26,12));toast('Atmosfera criada');render()}
-function presetHospitalDecor(){saveHistory();for(let i=0;i<12;i++)project.objects.push(obj('lamp',4+Math.random()*27,4+Math.random()*14,{radius:3+Math.random()*2}));toast('Iluminação adicionada');render()}
-$('save').onclick=exportProject;
-function exportProject(){let b=new Blob([JSON.stringify(project,null,2)],{type:'application/json'}),a=document.createElement('a');a.href=URL.createObjectURL(b);a.download=(project.name||'o-hospital').replace(/[^a-z0-9_-]+/gi,'_')+'.ohospital.json';a.click();URL.revokeObjectURL(a.href);toast('Projeto exportado')}
-$('projectInput').onchange=e=>{let f=e.target.files[0];if(!f)return;let r=new FileReader();r.onload=()=>{try{project=JSON.parse(r.result);selected=null;$('projectName').textContent=project.name;render();toast('Projeto importado')}catch{toast('Arquivo de projeto inválido')}};r.readAsText(f)};
-$('assetInput').onchange=e=>{for(const f of e.target.files){project.assets.push({name:f.name,type:f.type,size:f.size});}toast(e.target.files.length+' arquivo(s) associado(s) ao projeto')};
+  /* chão e paredes */
+  for(let y=Math.max(0,minY);y<Math.min(mapH,maxY);y++){
+    for(let x=Math.max(0,minX);x<Math.min(mapW,maxX);x++){
+      const [px,py]=project(x,y,tile,ox,oy);
+      if(grid[y][x])drawWallTile(px,py,tile);
+      else drawFloorTile(px,py,tile,(x*7+y*11)%5===0);
+    }
+  }
 
-let audioCtx=null;
-function beep(){if(!audioCtx)audioCtx=new (window.AudioContext||window.webkitAudioContext)();let o=audioCtx.createOscillator(),g=audioCtx.createGain();o.type='sine';o.frequency.value=520;g.gain.setValueAtTime(.0001,audioCtx.currentTime);g.gain.exponentialRampToValueAtTime(.08,audioCtx.currentTime+.01);g.gain.exponentialRampToValueAtTime(.0001,audioCtx.currentTime+.16);o.connect(g);g.connect(audioCtx.destination);o.start();o.stop(audioCtx.currentTime+.18)}
+  /* objetos são desenhados por profundidade para parecerem assentados no chão */
+  const renderables=[];
+  for(const f of furniture)renderables.push({depth:f.y+(f.h/2),kind:'f',o:f});
+  for(const d of doors)renderables.push({depth:d.y,kind:'d',o:d});
+  for(const o of objects)if(!o.done)renderables.push({depth:o.y,kind:'o',o:o});
+  for(const z of zombies)renderables.push({depth:z.y,kind:'z',o:z});
+  renderables.push({depth:player.y,kind:'p',o:player});
+  renderables.sort((a,b)=>a.depth-b.depth);
 
-let game={running:false,t:0,x:17,y:16,vx:0,vy:0,hp:100,run:false,joy:{x:0,y:0},near:null,dialogue:0,inventory:[]};
-function startGame(){game={...game,running:true,t:0,x:17,y:16,vx:0,vy:0,hp:100,run:false,joy:{x:0,y:0},near:null,dialogue:0,inventory:[]};$('playOverlay').classList.add('open');resizeGame();gameLoop(performance.now());}
-function stopGame(){$('playOverlay').classList.remove('open');game.running=false}
-$('play').onclick=startGame;
-$('playOverlay').addEventListener('dblclick',stopGame);
-function resizeGame(){let r=gameCanvas.getBoundingClientRect();gameCanvas.width=r.width*DPR;gameCanvas.height=r.height*DPR;gctx.setTransform(DPR,0,0,DPR,0,0)}
-addEventListener('resize',resizeGame);
-function iso(x,y){let s=Math.min(gameCanvas.clientWidth,gameCanvas.clientHeight)/25;return{x:gameCanvas.clientWidth/2+(x-y)*s*.62,y:gameCanvas.clientHeight/2+(x+y)*s*.32}}
-function gameLoop(now){if(!game.running)return;let dt=Math.min(.033,(now-(game.last||now))/1000);game.last=now;updateGame(dt);drawGame();requestAnimationFrame(gameLoop)}
-function updateGame(dt){
- let sp=game.run?3.5:2.0;game.x+=game.joy.x*sp*dt;game.y+=game.joy.y*sp*dt;game.x=Math.max(1.5,Math.min(32.5,game.x));game.y=Math.max(1.5,Math.min(20.5,game.y));
- for(const e of project.objects.filter(o=>o.type==='enemy')){let dx=game.x-e.x,dy=game.y-e.y,d=Math.hypot(dx,dy);if(d<e.vision){e._gx=(dx/d)*e.speed;e._gy=(dy/d)*e.speed;e._gx*=dt;e._gy*=dt;e._x=(e._x||e.x)+e._gx;e._y=(e._y||e.y)+e._gy;if(d<.7)game.hp=Math.max(0,game.hp-e.damage*dt)}}
- let nearest=null,nd=1.25;for(const o of project.objects){let ox=o._x??o.x,oy=o._y??o.y,d=Math.hypot(game.x-ox,game.y-oy);if(o.interactive&&d<nd){nearest=o;nd=d}}game.near=nearest;
- $('hpbar').style.width=Math.max(0,game.hp)+'%';$('hpText').textContent=Math.round(game.hp);$('objective').textContent=project.story.objective;
+  for(const r of renderables){
+    if(r.kind==='f')drawFurniture(r.o,tile,ox,oy);
+    else if(r.kind==='d'){
+      const d=r.o,[x,y]=project(d.x,d.y,tile,ox,oy),th=GFX.wallH*.55;
+      ctx.fillStyle=d.open?'#536e5b':'#765b45';
+      if(d.axis==='h'){
+        ctx.fillRect(x-30,y-5,60,10);ctx.fillStyle='#303831';ctx.fillRect(x-30,y-5-th,60,th);
+      }else{
+        ctx.fillRect(x-5,y-30,10,60);ctx.fillStyle='#303831';ctx.fillRect(x-5,y-30-th,th,60);
+      }
+      ctx.fillStyle='#c3ad78';ctx.beginPath();ctx.arc(x+(d.axis==='h'?20:0),y+(d.axis==='v'?20:0),3,0,Math.PI*2);ctx.fill();
+    } else if(r.kind==='o'){
+      const o=r.o,[x,y]=project(o.x,o.y,tile,ox,oy);
+      ctx.save();ctx.shadowColor='#000';ctx.shadowBlur=9;
+      ctx.fillStyle=o.kind==='key'?'#c5a94e':o.kind==='card'?'#5d9b83':o.kind==='safe'?'#66736c':o.kind==='exit'?'#8f4944':'#d1c7a0';
+      const s=9;ctx.fillRect(x-s,y-s*.6,18,12);ctx.restore();
+      ctx.fillStyle='#fff8';ctx.fillRect(x-5,y-3,10,2);
+    } else if(r.kind==='z'){
+      drawCharacter(r.o.x,r.o.y,r.o.dir,'zombie',tile,ox,oy,false);
+    } else {
+      drawCharacter(player.x,player.y,player.angle,'player',tile,ox,oy,hidden);
+    }
+  }
+  ctx.restore();
+
+  /* luz depois do mundo para deixar a iluminação realmente sobre o cenário */
+  drawFlashlight(tile,ox,oy);
+
+  if(hidden){
+    ctx.fillStyle='rgba(5,8,7,.25)';ctx.fillRect(0,0,W,H);
+    ctx.fillStyle='#e6e9e4';ctx.font='700 10px system-ui';ctx.textAlign='center';
+    ctx.fillText('ESCONDIDO',W/2,H/2+48);
+  }
+  ctx.fillStyle='#e6e9e4';ctx.font='10px system-ui';ctx.textAlign='center';
+  ctx.fillText('O HOSPITAL  /  SETOR 01',W/2,H-12);
 }
-function drawGame(){
- let w=gameCanvas.clientWidth,h=gameCanvas.clientHeight;gctx.clearRect(0,0,w,h);
- let bg=gctx.createLinearGradient(0,0,0,h);bg.addColorStop(0,'#07100d');bg.addColorStop(1,'#18201b');gctx.fillStyle=bg;gctx.fillRect(0,0,w,h);
- // pseudo 2.5D room
- let s=Math.min(w,h)/25;gctx.save();gctx.translate(w/2,h/2);
- for(let y=0;y<22;y++)for(let x=0;x<34;x++){let p=iso(x,y);let q=iso(x+1,y);let r=iso(x+1,y+1);let z=iso(x,y+1);gctx.fillStyle=(x+y)%2?'#202923':'#1c241f';gctx.beginPath();gctx.moveTo(p.x-w/2,p.y-h/2);gctx.lineTo(q.x-w/2,q.y-h/2);gctx.lineTo(r.x-w/2,r.y-h/2);gctx.lineTo(z.x-w/2,z.y-h/2);gctx.closePath();gctx.fill()}
- gctx.restore();
- const arr=project.objects.map(o=>({...o,x:o._x??o.x,y:o._y??o.y})).filter(o=>o.type!=='floor').sort((a,b)=>(a.x+a.y)-(b.x+b.y));
- for(const o of arr){let p=iso(o.x,o.y);let c=colors[o.type]||'#777';let depth=(o.type==='wall'||o.type==='door')?14:5;gctx.fillStyle='#0007';gctx.beginPath();gctx.ellipse(p.x+4,p.y+7,Math.max(5,o.w*s*.35),Math.max(2,o.h*s*.16),0,0,7);gctx.fill();gctx.fillStyle=shade(c,.65);gctx.beginPath();gctx.moveTo(p.x-o.w*s*.4,p.y-o.h*s*.22);gctx.lineTo(p.x+o.w*s*.4,p.y-o.h*s*.22);gctx.lineTo(p.x+o.w*s*.4,p.y+o.h*s*.22+depth);gctx.lineTo(p.x-o.w*s*.4,p.y+o.h*s*.22+depth);gctx.closePath();gctx.fill();gctx.fillStyle=c;gctx.beginPath();gctx.moveTo(p.x-o.w*s*.4,p.y-o.h*s*.22);gctx.lineTo(p.x,p.y-o.h*s*.4);gctx.lineTo(p.x+o.w*s*.4,p.y-o.h*s*.22);gctx.lineTo(p.x,p.y);gctx.closePath();gctx.fill()}
- let pp=iso(game.x,game.y);gctx.fillStyle='#0008';gctx.beginPath();gctx.ellipse(pp.x,pp.y+10,12,5,0,0,7);gctx.fill();gctx.fillStyle='#dff59a';gctx.beginPath();gctx.arc(pp.x,pp.y-3,10,0,7);gctx.fill();gctx.fillStyle='#25321e';gctx.beginPath();gctx.arc(pp.x-3,pp.y-5,2,0,7);gctx.arc(pp.x+3,pp.y-5,2,0,7);gctx.fill();
-}
-let joyEl=$('joy'),knob=$('knob');
-function setJoy(e){let r=joyEl.getBoundingClientRect(),dx=e.clientX-(r.left+r.width/2),dy=e.clientY-(r.top+r.height/2),m=Math.min(45,Math.hypot(dx,dy)),a=Math.atan2(dy,dx);game.joy.x=Math.cos(a)*(m/45);game.joy.y=Math.sin(a)*(m/45);knob.style.transform=`translate(${Math.cos(a)*m}px,${Math.sin(a)*m}px)`}
-joyEl.addEventListener('pointerdown',e=>{joyEl.setPointerCapture(e.pointerId);setJoy(e)});joyEl.addEventListener('pointermove',e=>{if(e.buttons)setJoy(e)});joyEl.addEventListener('pointerup',()=>{game.joy.x=game.joy.y=0;knob.style.transform='translate(0,0)'});
-$('runBtn').onpointerdown=()=>game.run=true;$('runBtn').onpointerup=()=>game.run=false;
-$('actBtn').onclick=()=>{if(game.near){let o=game.near;if(o.type==='npc'){let d=project.story.dialogues[game.dialogue%project.story.dialogues.length];$('speaker').textContent=d?.speaker||o.name;$('dialogueText').textContent=d?.text||o.dialogue||'...';$('dialogue').style.display='block';game.dialogue++}else if(o.type==='item'||o.type==='weapon'){game.inventory.push(o.itemId);toast('Item coletado: '+o.name);o.interactive=false}else beep()}};
-$('dialogueNext').onclick=()=>{$('dialogue').style.display='none'};
-$('workspace').addEventListener('click',e=>{if(e.target===canvas)return});
-function openBottom(){}
-render();setTimeout(resize,50);setTimeout(fit,80);
+let last=0;function loop(ts){requestAnimationFrame(loop);let dt=Math.min(.04,(ts-last)/1000||0);last=ts;try{if(playing&&$('story').classList.contains('hidden')&&$('puzzle').classList.contains('hidden')&&$('death').classList.contains('hidden')&&$('ending').classList.contains('hidden'))update(dt);draw()}catch(err){console.error('Falha no quadro do jogo:',err);}}requestAnimationFrame(loop);
+async function immersive(){try{if(!document.fullscreenElement)await document.documentElement.requestFullscreen({navigationUI:'hide'});}catch(e){}try{if(screen.orientation&&screen.orientation.lock)await screen.orientation.lock('landscape');}catch(e){}}
+$('start').onclick=()=>{immersive();playing=true;closeModal('menu');$('hud').classList.remove('hidden');$('controls').classList.remove('hidden');showStory('O DESPERTAR','Você acorda no chão frio da ala de emergência. O último som que lembra é o de uma porta sendo trancada. O prontuário próximo pode explicar por que a energia não pode permanecer desligada.');};
+$('settingsOpen').onclick=()=>showModal('settings');$('settingsBack').onclick=()=>closeModal('settings');$('settingsOpen').addEventListener('pointerup',e=>{e.preventDefault();showModal('settings')});$('settingsBack').addEventListener('pointerup',e=>{e.preventDefault();closeModal('settings')});$('start').addEventListener('pointerup',e=>{e.preventDefault();if(!playing){immersive();playing=true;closeModal('menu');$('hud').classList.remove('hidden');$('controls').classList.remove('hidden');showStory('O DESPERTAR','Você acorda no chão frio da ala de emergência. O último som que lembra é o de uma porta sendo trancada. O prontuário próximo pode explicar por que a energia não pode permanecer desligada.')}});
+$('brightness').oninput=e=>{brightness=+e.target.value;settings.brightness=brightness;canvas.style.filter=`brightness(${brightness})`};$('uiScale').oninput=e=>{scale=+e.target.value;settings.uiScale=scale;document.documentElement.style.setProperty('--ui-scale',scale);$('hud').style.transform=`scale(${scale})`;$('hud').style.transformOrigin='top left';$('controls').style.transform=`scale(${scale})`;$('controls').style.transformOrigin='bottom right'};$('reduced').onchange=e=>{reduced=e.target.checked;settings.reduced=reduced;document.body.classList.toggle('reduced-effects',reduced);canvas.style.imageRendering=reduced?'pixelated':'auto'};
+$('storyNext').onclick=()=>closeModal('story');
+$('action').onclick=interact;$('hide').onclick=()=>{let f=furniture.find(f=>f.type==='locker'&&Math.hypot(player.x-f.x,player.y-f.y)<1.05);if(!hidden&&f){hidden=true;player.x=f.x;player.y=f.y;toast('Você se escondeu. Fique imóvel e evite chamar atenção.')}else if(hidden){hidden=false;toast('Você saiu do esconderijo.')}else toast('Aproxime-se de um armário para se esconder.');};$('flash').onclick=()=>{player.flash=!player.flash};$('crouch').onclick=()=>{player.crouch=!player.crouch;$('crouch').style.borderColor=player.crouch?'#d4d9ce':'#69756d'};
+const runBtn=$('run');runBtn.onpointerdown=e=>{e.preventDefault();running=true};['pointerup','pointercancel','pointerleave'].forEach(ev=>runBtn.addEventListener(ev,()=>running=false));addEventListener('pointerup',()=>running=false);
+const joy=$('joy'),stick=$('stick');function joyMove(e){let r=joy.getBoundingClientRect(),dx=e.clientX-(r.left+r.width/2),dy=e.clientY-(r.top+r.height/2),l=Math.hypot(dx,dy),m=35;if(l>m){dx*=m/l;dy*=m/l}joystick.x=dx/m;joystick.y=dy/m;stick.style.transform=`translate(${dx}px,${dy}px)`}joy.onpointerdown=e=>{joyId=e.pointerId;joy.setPointerCapture(joyId);joyMove(e)};joy.onpointermove=e=>{if(e.pointerId===joyId)joyMove(e)};function joyEnd(){joyId=null;joystick.x=joystick.y=0;stick.style.transform='translate(0,0)'}joy.onpointerup=joyEnd;joy.onpointercancel=joyEnd;
+$('look').onpointerdown=e=>{lookId=e.pointerId;lastLook=[e.clientX,e.clientY];$('look').setPointerCapture(lookId)};$('look').onpointermove=e=>{if(e.pointerId!==lookId)return;let dx=e.clientX-lastLook[0],dy=e.clientY-lastLook[1];player.angle=Math.atan2(dy,dx);lastLook=[e.clientX,e.clientY]};$('look').onpointerup=$('look').onpointercancel=()=>lookId=null;
+addEventListener('keydown',e=>{keys[e.code]=true;if(e.code==='KeyE'||e.code==='Space')interact();if(e.code==='KeyF')player.flash=!player.flash;if(e.code==='KeyL')player.flash=!player.flash;if(e.code==='ControlLeft')player.crouch=true});addEventListener('keyup',e=>{keys[e.code]=false;if(e.code==='ControlLeft')player.crouch=false});addEventListener('keydown',e=>{if(e.code==='Escape'){['story','puzzle','settings'].forEach(id=>closeModal(id));}});
+})();
 </script>
 </body>
 </html>
