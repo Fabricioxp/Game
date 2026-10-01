@@ -948,7 +948,7 @@ div>
 
             // Lanterna: feixe mais forte, longo e com sombras reais.
             const flashlight = new THREE.SpotLight(0xeafff0, 8.0, 18, Math.PI / 5.5, 0.58, 1.15);
-            flashlight.position.set(0, 1.32, -0.12);
+            flashlight.position.set(0, 1.32, 0.12);
             flashlight.castShadow = true;
             flashlight.shadow.mapSize.set(1024, 1024);
             flashlight.shadow.bias = -0.0008;
@@ -957,7 +957,7 @@ div>
             flashlight.shadow.camera.far = 18;
 
             const spotTarget = new THREE.Object3D();
-            spotTarget.position.set(0, 1.05, -6);
+            spotTarget.position.set(0, 1.05, 6);
             group.add(spotTarget);
             flashlight.target = spotTarget;
             group.add(flashlight);
@@ -967,7 +967,7 @@ div>
                 new THREE.SphereGeometry(0.045, 10, 8),
                 new THREE.MeshBasicMaterial({ color: 0xf4fff8 })
             );
-            lamp.position.set(0, 1.32, -0.22);
+            lamp.position.set(0, 1.32, 0.22);
             group.add(lamp);
 
             group.position.set(Game.player.x, 0, Game.player.z);
@@ -1057,7 +1057,7 @@ div>
                 // O eixo Y da tela cresce para baixo; no mundo do jogo, o eixo Z positivo
                 // corresponde ao movimento visual para cima. Invertendo aqui, o joystick
                 // passa a respeitar a direção física do dedo: baixo = baixo, cima = cima.
-                Game.touchDir.y = -knobY / maxR;
+                Game.touchDir.y = knobY / maxR;
             };
             const resetJoystick = () => {
                 joystickActive = false; pointerId = null;
@@ -1318,7 +1318,7 @@ div>
                 if (!checkCollision(nextX, Game.player.z)) Game.player.x = nextX;
                 if (!checkCollision(Game.player.x, nextZ)) Game.player.z = nextZ;
 
-                Game.player.angle = Math.atan2(moveX, -moveZ);
+                Game.player.angle = Math.atan2(moveX, moveZ);
                 Game.player.mesh.rotation.y = Game.player.angle;
 
                 if (Math.random() < (Game.running ? 0.35 : 0.18)) {
