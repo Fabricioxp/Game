@@ -133,7 +133,7 @@
             flex-wrap: nowrap !important;
         }
         .hud-panel { min-width: 0; }
-        #status-cards { display:grid; grid-template-columns: repeat(3,minmax(78px,1fr)); gap:6px; }
+        #status-cards { display:grid; grid-template-columns: repeat(2,minmax(78px,1fr)); gap:6px; }
         .status-card { min-width:78px; }
         .hud-obj-box { box-shadow: 0 8px 28px rgba(0,0,0,.42); }
         #inventory-bar { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
@@ -141,7 +141,7 @@
 
         @media (max-width: 900px) and (orientation: landscape) {
             .hud-top-bar { grid-template-columns: minmax(155px,1fr) auto 62px; gap:6px; }
-            #status-cards { grid-template-columns: repeat(3, minmax(68px,1fr)); }
+            #status-cards { grid-template-columns: repeat(2, minmax(68px,1fr)); }
             .status-card { min-width:68px; }
             #joystick-zone { width:112px; height:112px; left:12px; bottom:12px; }
             #joystick-knob { width:46px; height:46px; }
@@ -152,7 +152,7 @@
         }
         @media (max-width: 560px) and (orientation: landscape) {
             .hud-top-bar { grid-template-columns: minmax(130px,1fr) auto 56px; }
-            #status-cards { grid-template-columns: repeat(3, 62px); }
+            #status-cards { grid-template-columns: repeat(2, 62px); }
             .status-card { min-width:62px; }
             #minimap-canvas { width:54px !important; height:54px !important; }
             #joystick-zone { width:98px; height:98px; }
@@ -297,10 +297,6 @@
                 <div class="status-card hud-panel glass-panel rounded-xl p-1.5 md:p-2 px-2 md:px-3">
                     <div class="flex justify-between items-center text-[8px] md:text-[10px] font-bold text-gray-300 mb-1"><span>SAÚDE</span><span id="hp-val" class="text-emerald-400 font-mono">100%</span></div>
                     <div class="w-full h-1.5 bg-gray-800 rounded-full overflow-hidden"><div id="hp-bar" class="h-full bg-emerald-500" style="width:100%"></div></div>
-                </div>
-                <div class="status-card hud-panel glass-panel rounded-xl p-1.5 md:p-2 px-2 md:px-3">
-                    <div class="flex justify-between items-center text-[8px] md:text-[10px] font-bold text-gray-300 mb-1"><span>BATERIA</span><span id="bat-val" class="text-amber-400 font-mono">100%</span></div>
-                    <div class="w-full h-1.5 bg-gray-800 rounded-full overflow-hidden"><div id="bat-bar" class="h-full bg-amber-400" style="width:100%"></div></div>
                 </div>
                 <div class="status-card hud-panel glass-panel rounded-xl p-1.5 md:p-2 px-2 md:px-3">
                     <div class="flex justify-between items-center text-[8px] md:text-[10px] font-bold text-gray-300 mb-1"><span>FÔLEGO</span><span id="stamina-val" class="text-sky-300 font-mono">100%</span></div>
@@ -510,7 +506,7 @@ div>
             active: false,
             paused: false,
             hp: 100,
-            battery: 100,
+            battery: Infinity,
             stamina: 100,
             flashOn: true,
             crouch: false,
@@ -530,7 +526,12 @@ div>
                 vx: 0, vz: 0,
                 angle: 0,
                 mesh: null,
-                light: null
+                light: null,
+                flashFlickerTimer: 24 + Math.random() * 24,
+                flashFlickerUntil: 0,
+                lampMesh: null,
+                fillLight: null,
+                flashReady: false
             },
             
             touchDir: { x: 0, y: 0 },
@@ -569,8 +570,8 @@ div>
             const container = $('game-container');
             
             scene = new THREE.Scene();
-            scene.background = new THREE.Color(0x040706);
-            scene.fog = new THREE.FogExp2(0x040706, 0.045);
+            scene.background = new THREE.Color(0x08100d);
+            scene.fog = new THREE.FogExp2(0x08100d, 0.010);
 
             const aspect = window.innerWidth / window.innerHeight;
             camera = new THREE.PerspectiveCamera(50, aspect, 0.1, 100);
@@ -583,7 +584,7 @@ div>
             renderer.shadowMap.enabled = true;
             renderer.shadowMap.type = THREE.PCFSoftShadowMap;
             renderer.toneMapping = THREE.ACESFilmicToneMapping;
-            renderer.toneMappingExposure = 0.9;
+            renderer.toneMappingExposure = 1.3;
             container.appendChild(renderer.domElement);
 
             clock = new THREE.Clock();
@@ -750,8 +751,15 @@ div>
         }
 
         function buildHospitalArchitecture() {
-            const ambientLight = new THREE.AmbientLight(0x17221f, 0.52);
+            const ambientLight = new THREE.AmbientLight(0x30483f, 0.78);
             scene.add(ambientLight);
+            const hemiLight = new THREE.HemisphereLight(0x9bb8aa, 0x18201d, 0.62);
+            hemiLight.position.set(0, 12, 0);
+            scene.add(hemiLight);
+            const fillLight = new THREE.DirectionalLight(0x9ab8aa, 0.28);
+            fillLight.position.set(0, 10, 8);
+            fillLight.target.position.set(0, 0, 0);
+            scene.add(fillLight, fillLight.target);
 
             // MAPA V5: corredor principal maior, salas realmente fechadas e portas como únicas aberturas.
             const corridorMin = -24.0;
@@ -790,8 +798,8 @@ div>
                     createWallWithDoorGaps(boundaryX * -1, zMin, zMax, [{center: doorZ, half: 1.18}]);
                 }
                 createWall(outerX, centerZ, 0.30, zMax-zMin);
-                createHorizontalWallWithDoorGap(zMin, Math.min(outerX, cx>0?boundaryX:-boundaryX), Math.max(outerX, cx>0?boundaryX:-boundaryX), 999, 0);
-                createWall(centerX, zMax, width, 0.30);
+                // Parede inferior da sala: fechada de ponta a ponta. A porta já está na parede do corredor.
+                createWall(centerX, zMin, width, 0.30);
                 const trim = new THREE.Mesh(new THREE.BoxGeometry(0.10, 0.16, zMax-zMin), accent ? MAT.doorFrame : MAT.wall);
                 trim.position.set(outerX + (cx>0?-0.12:0.12), 0.10, centerZ);
                 scene.add(trim);
@@ -858,6 +866,11 @@ div>
             const lights=[[0,20,0x88ccaa,1.15],[0,12,0x88ccaa,1.05],[0,5,0x88ccaa,1.0],[0,-2.5,0x668f82,.86],[0,-9,0x668f82,.82],[0,-16.5,0xff5544,1.35]];
             lights.forEach(v=>createCeilingLight(v[0],v[1],v[2],v[3],v[1]<-14));
             for(let z=corridorMin+1.5;z<corridorMax-1;z+=3) createRoomDetailStrip(0,z,6.2,0.035);
+            // Não há teto sólido: a câmera 2.5D fica acima do hospital. Estas travessas dão sensação de teto sem bloquear a câmera.
+            for(let z=corridorMin+1; z<corridorMax; z+=6){
+                const beam=new THREE.Mesh(new THREE.BoxGeometry(8.0,0.12,0.18), MAT.doorFrame);
+                beam.position.set(0,3.15,z); scene.add(beam);
+            }
 
             // Sinalização física dos setores.
             createSectorSign(-3.95,13.5,'RECEPÇÃO'); createSectorSign(-3.95,3.5,'ARQUIVO'); createSectorSign(-3.95,-3.5,'FARMÁCIA');
@@ -954,11 +967,11 @@ div>
         }
 
         function createCeilingLight(x, z, color = 0xaaeedd, intensity = 1.0, flicker = false) {
-            const light = new THREE.PointLight(color, intensity, 10);
+            const light = new THREE.PointLight(color, intensity * 1.45, 15, 1.5);
             light.position.set(x, 2.8, z);
             light.castShadow = true;
             scene.add(light);
-            Game.dynamicLights.push({light, base:intensity, flicker});
+            Game.dynamicLights.push({light, base:intensity * 1.45, flicker});
 
             const fixture = new THREE.Mesh(new THREE.BoxGeometry(0.8, 0.1, 0.4), new THREE.MeshBasicMaterial({ color }));
             fixture.position.set(x, 3.1, z);
@@ -1104,55 +1117,115 @@ div>
                 group.add(boot);
             }
 
-            // Lanterna: feixe mais forte, longo e com sombras reais.
-            const flashlight = new THREE.SpotLight(0xeafff0, 8.0, 18, Math.PI / 5.5, 0.58, 1.15);
-            flashlight.position.set(0, 1.32, 0.12);
+            // LANTERNA FÍSICA: o jogador olha/move no +Z local.
+            // A direção é a mesma usada pelo movimento: atan2(moveX, moveZ).
+            const flashlight = new THREE.SpotLight(0xf5fff9, 48.0, 24, Math.PI / 4.2, 0.72, 2.0);
+            flashlight.position.set(0, 1.32, 0.34);
             flashlight.castShadow = true;
             flashlight.shadow.mapSize.set(1024, 1024);
-            flashlight.shadow.bias = -0.0008;
+            flashlight.shadow.bias = -0.00035;
             flashlight.shadow.normalBias = 0.025;
-            flashlight.shadow.camera.near = 0.1;
-            flashlight.shadow.camera.far = 18;
+            flashlight.shadow.camera.near = 0.12;
+            flashlight.shadow.camera.far = 24;
 
+            // +Z = frente do personagem. Nunca usar -Z aqui: isso inverteria a lanterna.
             const spotTarget = new THREE.Object3D();
-            spotTarget.position.set(0, 1.05, 6);
+            spotTarget.position.set(0, 0.08, 12);
             group.add(spotTarget);
             flashlight.target = spotTarget;
             group.add(flashlight);
 
-            // Pequeno brilho na origem da lanterna para deixar o estado visível.
+            // Feixe visual suave no chão. Ele acompanha a rotação do personagem,
+            // mas não substitui a luz real nem as sombras do SpotLight.
+            const beamCanvas = document.createElement('canvas');
+            beamCanvas.width = 256;
+            beamCanvas.height = 512;
+            const bc = beamCanvas.getContext('2d');
+            const grad = bc.createLinearGradient(0, 0, 0, 512);
+            grad.addColorStop(0.00, 'rgba(238,255,248,0.28)');
+            grad.addColorStop(0.18, 'rgba(238,255,248,0.20)');
+            grad.addColorStop(0.55, 'rgba(238,255,248,0.08)');
+            grad.addColorStop(1.00, 'rgba(238,255,248,0.00)');
+            bc.fillStyle = grad;
+            bc.fillRect(0, 0, 256, 512);
+            const beamTexture = new THREE.CanvasTexture(beamCanvas);
+            beamTexture.needsUpdate = true;
+
+            const beamGeometry = new THREE.BufferGeometry();
+            const beamLength = 12.0;
+            const nearWidth = 0.32;
+            const farWidth = 3.6;
+            const beamPositions = new Float32Array([
+                -nearWidth, 0.018, 0.55,
+                 nearWidth, 0.018, 0.55,
+                -farWidth, 0.018, beamLength,
+                 farWidth, 0.018, beamLength
+            ]);
+            const beamUVs = new Float32Array([0,1, 1,1, 0,0, 1,0]);
+            beamGeometry.setAttribute('position', new THREE.BufferAttribute(beamPositions, 3));
+            beamGeometry.setAttribute('uv', new THREE.BufferAttribute(beamUVs, 2));
+            beamGeometry.setIndex([0,2,1, 1,2,3]);
+            beamGeometry.computeVertexNormals();
+
+            const beamMaterial = new THREE.MeshBasicMaterial({
+                map: beamTexture,
+                color: 0xf1fff8,
+                transparent: true,
+                opacity: 0.72,
+                depthWrite: false,
+                side: THREE.DoubleSide,
+                blending: THREE.AdditiveBlending
+            });
+            const beamMesh = new THREE.Mesh(beamGeometry, beamMaterial);
+            beamMesh.position.y = 0.012;
+            group.add(beamMesh);
+
+            // Preenchimento mínimo apenas para o entorno imediato.
+            // Mantemos baixo para que objetos próximos ainda projetem sombra.
+            const flashlightFill = new THREE.PointLight(0xeafff2, 0.85, 4.0, 2.0);
+            flashlightFill.position.set(0, 1.0, 0.42);
+            group.add(flashlightFill);
+
             const lamp = new THREE.Mesh(
-                new THREE.SphereGeometry(0.045, 10, 8),
+                new THREE.SphereGeometry(0.035, 10, 8),
                 new THREE.MeshBasicMaterial({ color: 0xf4fff8 })
             );
-            lamp.position.set(0, 1.32, 0.22);
+            lamp.position.set(0, 1.30, 0.26);
             group.add(lamp);
 
             group.position.set(Game.player.x, 0, Game.player.z);
             scene.add(group);
             Game.player.mesh = group;
             Game.player.light = flashlight;
-
-            // Luz auxiliar: garante que o estado da lanterna seja visível mesmo em
-            // aparelhos/navegadores onde o SpotLight com sombras é mais limitado.
-            const flashlightFill = new THREE.PointLight(0xeafff0, 0.65, 4.5, 2);
-            flashlightFill.position.set(0, 1.32, 0.18);
-            group.add(flashlightFill);
-            Game.player.fillLight = flashlightFill;
             Game.player.lampMesh = lamp;
+            Game.player.fillLight = flashlightFill;
+            Game.player.beamMesh = beamMesh;
             Game.player.flashReady = true;
+            updateFlashlightDirection();
             applyFlashlightState();
+
+        }
+
+        function updateFlashlightDirection() {
+            if (!Game.player.mesh || !Game.player.light) return;
+            const target = Game.player.light.target;
+            target.position.set(0, 0.08, 12);
+            target.updateMatrixWorld(true);
+            Game.player.light.updateMatrixWorld(true);
         }
 
         function applyFlashlightState() {
-            const on = !!Game.flashOn && Game.battery > 0;
+            const on = !!Game.flashOn;
             if (Game.player.light) {
                 Game.player.light.visible = on;
-                Game.player.light.intensity = on ? 8.0 : 0;
+                Game.player.light.intensity = on ? 48.0 : 0;
             }
             if (Game.player.fillLight) {
                 Game.player.fillLight.visible = on;
-                Game.player.fillLight.intensity = on ? 0.65 : 0;
+                Game.player.fillLight.intensity = on ? 0.85 : 0;
+            }
+            if (Game.player.beamMesh) {
+                Game.player.beamMesh.visible = on;
             }
             if (Game.player.lampMesh && Game.player.lampMesh.material) {
                 Game.player.lampMesh.material.color.setHex(on ? 0xf4fff8 : 0x17201c);
@@ -1209,7 +1282,6 @@ div>
 
         function setupPickups() {
             // Battery Pickup in Ward
-            createPickupItem(5.5, 13.5, 'battery', 'Bateria Extra (+50%)');
             // Medkit Pickup in Pharmacy
             createPickupItem(-5.5, -6.5, 'medkit', 'Kit Médico (+40% Saúde)');
         }
@@ -1420,12 +1492,8 @@ div>
 
             const setFlash = () => {
                 AudioSys.playClick();
-                if (!Game.flashOn && Game.battery <= 0) {
-                    applyFlashlightState();
-                    showToast('Bateria da lanterna esgotada.');
-                    return;
-                }
                 Game.flashOn = !Game.flashOn;
+                if (Game.flashOn) Game.player.flashFlickerTimer = 24 + Math.random() * 24;
                 applyFlashlightState();
                 showToast(Game.flashOn ? 'Lanterna ligada.' : 'Lanterna desligada.');
             };
@@ -1475,7 +1543,9 @@ div>
             document.getElementById('story-hud').style.display='block';
             document.getElementById('sanity-hud').style.display='block';
             Game.active = true;
-            Game.flashOn = Game.battery > 0;
+            Game.flashOn = true;
+            Game.player.flashFlickerTimer = 24 + Math.random() * 24;
+            Game.player.flashFlickerUntil = 0;
             applyFlashlightState();
             updateHUD();
         }
@@ -1683,6 +1753,7 @@ div>
 
                 Game.player.angle = Math.atan2(moveX, moveZ);
                 Game.player.mesh.rotation.y = Game.player.angle;
+                updateFlashlightDirection();
 
                 if (Math.random() < (Game.running ? 0.35 : 0.18)) {
                     AudioSys.playStep();
@@ -1696,17 +1767,6 @@ div>
                 Game.stamina = Math.min(100, Game.stamina + 18 * dt);
             }
 
-            // Battery drain logic when flashlight is turned on
-            if (Game.flashOn && Game.battery > 0) {
-                Game.battery = Math.max(0, Game.battery - 0.8 * dt);
-                if (Game.battery === 0) {
-                    Game.flashOn = false;
-                    applyFlashlightState();
-                    showToast("Bateria da lanterna esgotada!");
-                }
-                updateHUD();
-            }
-
             // Pickups collision logic
             for (const p of Game.pickups) {
                 if (!p.collected && Math.hypot(p.x - Game.player.x, p.z - Game.player.z) < 0.9) {
@@ -1714,10 +1774,7 @@ div>
                     scene.remove(p.mesh);
                     AudioSys.playPickup();
 
-                    if (p.type === 'battery') {
-                        Game.battery = Math.min(100, Game.battery + 50);
-                        showToast("Bateria Coletada (+50%)");
-                    } else if (p.type === 'medkit') {
+                    if (p.type === 'medkit') {
                         Game.hp = Math.min(100, Game.hp + 40);
                         showToast("Kit Médico Coletado (+40%)");
                     }
@@ -1815,7 +1872,7 @@ div>
             const f=document.getElementById('fear-hud');
             if(f){ f.style.opacity=Game.fear>18?String(Math.min(.82,Game.fear/100+.05)):'0'; f.textContent=Game.fear>72?'BATIMENTO ACELERADO':Game.fear>42?'BATIMENTO ALTO':'BATIMENTO'; }
             // Flicker control: apenas luzes marcadas como instáveis.
-            for(const d of Game.dynamicLights){ if(d.flicker){ d.light.intensity=d.base*(Math.random()<.045?0.15:1); } }
+            for(const d of Game.dynamicLights){ if(d.flicker){ const mul=(Math.random()<.045?0.15:1); d.light.intensity=d.base*mul; if(d.fixture && d.fixture.material) d.fixture.material.opacity=0.7+0.3*mul; } }
             // Eventos raros de ambiente, sem alterar o progresso.
             Game.eventTimer-=dt;
             if(Game.eventTimer<=0){
@@ -1830,9 +1887,28 @@ div>
         function updateAdvancedSystems(dt){
             if(!Game.active || Game.paused)return;
             Game.timePlayed+=dt;
+            // Piscadas raras e curtas: falha elétrica visual, sem desligar a lanterna de forma permanente.
+            if (Game.flashOn && Game.player.light) {
+                Game.player.flashFlickerTimer -= dt;
+                if (Game.player.flashFlickerUntil > 0) {
+                    Game.player.flashFlickerUntil -= dt;
+                    const phase = Math.floor(Game.player.flashFlickerUntil * 18);
+                    Game.player.light.intensity = (phase % 2 === 0) ? 8.0 : 55.0;
+                    if (Game.player.flashFlickerUntil <= 0) {
+                        Game.player.flashFlickerUntil = 0;
+                        Game.player.light.intensity = 55.0;
+                        Game.player.flashFlickerTimer = 24 + Math.random() * 42;
+                    }
+                } else if (Game.player.flashFlickerTimer <= 0) {
+                    Game.player.flashFlickerUntil = 0.34 + Math.random() * 0.22;
+                }
+            } else if (Game.player.light) {
+                Game.player.light.intensity = 0;
+            }
+
             // Sanidade: escuro, proximidade e perseguição deterioram lentamente o estado.
             const nearby=Game.monsters.some(m=>(m.floor??0)===Game.floor && Math.hypot(m.x-Game.player.x,m.z-Game.player.z)<7);
-            const dark=!Game.flashOn || Game.battery<12;
+            const dark=!Game.flashOn;
             if(nearby) Game.sanity=Math.max(0,Game.sanity-5*dt); else if(!dark) Game.sanity=Math.min(100,Game.sanity+1.2*dt); else Game.sanity=Math.max(0,Game.sanity-0.55*dt);
             if(Game.sanity<25 && Math.random()<dt*.035){Game.fear=Math.min(100,Game.fear+8);showToast('Sua percepção parece falhar por um instante.');}
             // Passos e corrida alimentam o sistema de ruído existente.
@@ -1882,9 +1958,8 @@ div>
             $('hud-room').textContent=room; $('hud-sub').textContent=sub;
         }
         function updateHUD() {
-            const hp=Math.max(0,Math.min(100,Game.hp)), bat=Math.max(0,Math.min(100,Game.battery)), sta=Math.max(0,Math.min(100,Game.stamina));
+            const hp=Math.max(0,Math.min(100,Game.hp)), sta=Math.max(0,Math.min(100,Game.stamina));
             $('hp-val').textContent=`${Math.round(hp)}%`; $('hp-bar').style.width=`${hp}%`;
-            $('bat-val').textContent=`${Math.round(bat)}%`; $('bat-bar').style.width=`${bat}%`;
             $('stamina-val').textContent=`${Math.round(sta)}%`; $('stamina-bar').style.width=`${sta}%`;
             updateRoomHUD();
         }
@@ -1901,8 +1976,8 @@ div>
         window.__PZ_DEBUG = {
             getState() {
                 return {
-                    active: Game.active, paused: Game.paused, flashOn: Game.flashOn, battery: Game.battery,
-                    lightVisible: !!Game.player.light?.visible, fillVisible: !!Game.player.fillLight?.visible,
+                    active: Game.active, paused: Game.paused, flashOn: Game.flashOn, battery: Infinity,
+                    lightVisible: !!Game.player.light?.visible,
                     playerReady: !!Game.player.mesh && !!Game.player.light, floor: Game.floor,
                     interactables: Game.interactables.length, doors: Game.doors.length, colliders: Game.colliders.length,
                     monsters: Game.monsters.length, pickups: Game.pickups.length,
@@ -1913,7 +1988,6 @@ div>
             toggleFlash() {
                 if (!Game.active) return false;
                 Game.flashOn = !Game.flashOn;
-                if (Game.flashOn && Game.battery <= 0) Game.flashOn = false;
                 return applyFlashlightState();
             },
             setFloor(target) { setFloor(target); return Game.floor; }
@@ -1925,6 +1999,7 @@ div>
             const dt = Math.min(clock.getDelta(), 0.1);
 
             updatePlayer(dt);
+            updateFlashlightDirection();
             updateMonsters(dt);
             updateAtmosphere(dt);
             updateAdvancedSystems(dt);
@@ -1941,4 +2016,4 @@ div>
         });
     </script>
 </body>
-    </html>
+</html>
