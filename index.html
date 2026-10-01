@@ -1132,6 +1132,37 @@ div>
             scene.add(group);
             Game.player.mesh = group;
             Game.player.light = flashlight;
+
+            // Luz auxiliar: garante que o estado da lanterna seja visível mesmo em
+            // aparelhos/navegadores onde o SpotLight com sombras é mais limitado.
+            const flashlightFill = new THREE.PointLight(0xeafff0, 0.65, 4.5, 2);
+            flashlightFill.position.set(0, 1.32, 0.18);
+            group.add(flashlightFill);
+            Game.player.fillLight = flashlightFill;
+            Game.player.lampMesh = lamp;
+            Game.player.flashReady = true;
+            applyFlashlightState();
+        }
+
+        function applyFlashlightState() {
+            const on = !!Game.flashOn && Game.battery > 0;
+            if (Game.player.light) {
+                Game.player.light.visible = on;
+                Game.player.light.intensity = on ? 8.0 : 0;
+            }
+            if (Game.player.fillLight) {
+                Game.player.fillLight.visible = on;
+                Game.player.fillLight.intensity = on ? 0.65 : 0;
+            }
+            if (Game.player.lampMesh && Game.player.lampMesh.material) {
+                Game.player.lampMesh.material.color.setHex(on ? 0xf4fff8 : 0x17201c);
+            }
+            const btn = document.getElementById('btn-flash');
+            if (btn) {
+                btn.classList.toggle('active', on);
+                btn.setAttribute('aria-pressed', on ? 'true' : 'false');
+            }
+            return on;
         }
 
         function setupEnemies() {
@@ -1217,7 +1248,8 @@ div>
             const matFloor=MAT.floorRoom;
             function shell(z0,z1,labelLeft,labelRight,floorId){
                 createFloor(0,(z0+z1)/2,8.4,z1-z0,MAT.floorCorridor);
-                createWall(-4.2,(z0+z1)/2,.30,z1-z0); createWall(4.2,(z0+z1)/2,.30,z1-z0);
+                // Não criar paredes inteiras aqui: os limites laterais são montados
+                // abaixo com createWallWithDoorGaps, garantindo uma única abertura real.
                 createWall(0,z0,8.4,.30); createWall(0,z1,8.4,.30);
                 createFloor(-9.4,(z0+z1)/2,9.8,z1-z0,matFloor); createFloor(9.4,(z0+z1)/2,9.8,z1-z0,matFloor);
                 createWall(-14.3,(z0+z1)/2,.30,z1-z0); createWall(14.3,(z0+z1)/2,.30,z1-z0);
@@ -1304,7 +1336,12 @@ div>
         function loadAdvancedSave(){
             try{ const raw=localStorage.getItem('protocolo_zero_save_v2'); if(!raw)return; const d=JSON.parse(raw); if(!d||d.version!==Game.saveVersion)return;
                 Object.assign(Game,{hp:d.hp??100,battery:d.battery??100,stamina:d.stamina??100,floor:d.floor??0,generatorPower:!!d.generatorPower,archiveUnlocked:!!d.archiveUnlocked,pharmacyColdUnlocked:!!d.pharmacyColdUnlocked,staffKeycard:!!d.staffKeycard,icuUnlocked:!!d.icuUnlocked,cluesFound:d.cluesFound??0,tapesFound:d.tapesFound??0,secretsFound:d.secretsFound??0,sanity:d.sanity??100,storyChapter:d.storyChapter??1,unlockedFloors:d.unlockedFloors||{upper:false,basement:false}}); 
-                Game.player.x=d.x??0; Game.player.z=d.z??16; if(Game.floor!==0){ if(Game.floor===1){Game.player.x=0;Game.player.z=44;} if(Game.floor===-1){Game.player.x=0;Game.player.z=-44;} }
+                Game.player.x=d.x??0; Game.player.z=d.z??16;
+                if(Game.floor!==0){
+                    if(Game.floor===1){Game.player.x=0;Game.player.z=44;}
+                    if(Game.floor===-1){Game.player.x=0;Game.player.z=-44;}
+                    if(Game.floor===-2){Game.player.x=0;Game.player.z=-70;}
+                }
                 showToast('Progresso anterior restaurado.');
             }catch(_){ }
         }
@@ -1383,10 +1420,14 @@ div>
 
             const setFlash = () => {
                 AudioSys.playClick();
-                if (!Game.flashOn && Game.battery <= 0) { showToast('Bateria da lanterna esgotada.'); return; }
+                if (!Game.flashOn && Game.battery <= 0) {
+                    applyFlashlightState();
+                    showToast('Bateria da lanterna esgotada.');
+                    return;
+                }
                 Game.flashOn = !Game.flashOn;
-                if (Game.player.light) Game.player.light.visible = Game.flashOn;
-                $('btn-flash').classList.toggle('active', Game.flashOn);
+                applyFlashlightState();
+                showToast(Game.flashOn ? 'Lanterna ligada.' : 'Lanterna desligada.');
             };
             $('btn-flash').addEventListener('click', setFlash);
             $('btn-crouch').addEventListener('click', () => { AudioSys.playClick(); Game.crouch=!Game.crouch; $('btn-crouch').classList.toggle('active',Game.crouch); showToast(Game.crouch?'Modo Sigilo Ativado':'Modo Normal'); });
@@ -1434,9 +1475,8 @@ div>
             document.getElementById('story-hud').style.display='block';
             document.getElementById('sanity-hud').style.display='block';
             Game.active = true;
-            Game.flashOn = true;
-            if (Game.player.light) { Game.player.light.visible = true; Game.player.light.intensity = 8.0; }
-            $('btn-flash').classList.add('active');
+            Game.flashOn = Game.battery > 0;
+            applyFlashlightState();
             updateHUD();
         }
 
@@ -1661,7 +1701,7 @@ div>
                 Game.battery = Math.max(0, Game.battery - 0.8 * dt);
                 if (Game.battery === 0) {
                     Game.flashOn = false;
-                    Game.player.light.visible = false;
+                    applyFlashlightState();
                     showToast("Bateria da lanterna esgotada!");
                 }
                 updateHUD();
@@ -1856,6 +1896,29 @@ div>
             renderer.setSize(window.innerWidth, window.innerHeight);
         }
 
+        // Diagnóstico interno: usado para verificar sistemas reais no navegador,
+        // sem alterar a jogabilidade do usuário.
+        window.__PZ_DEBUG = {
+            getState() {
+                return {
+                    active: Game.active, paused: Game.paused, flashOn: Game.flashOn, battery: Game.battery,
+                    lightVisible: !!Game.player.light?.visible, fillVisible: !!Game.player.fillLight?.visible,
+                    playerReady: !!Game.player.mesh && !!Game.player.light, floor: Game.floor,
+                    interactables: Game.interactables.length, doors: Game.doors.length, colliders: Game.colliders.length,
+                    monsters: Game.monsters.length, pickups: Game.pickups.length,
+                    position: {x: Game.player.x, z: Game.player.z},
+                    chapter: Game.storyChapter
+                };
+            },
+            toggleFlash() {
+                if (!Game.active) return false;
+                Game.flashOn = !Game.flashOn;
+                if (Game.flashOn && Game.battery <= 0) Game.flashOn = false;
+                return applyFlashlightState();
+            },
+            setFloor(target) { setFloor(target); return Game.floor; }
+        };
+
         function gameLoop() {
             requestAnimationFrame(gameLoop);
 
@@ -1878,4 +1941,4 @@ div>
         });
     </script>
 </body>
-</html>
+    </html>
