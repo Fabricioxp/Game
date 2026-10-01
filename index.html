@@ -32,73 +32,139 @@
             pointer-events: none;
         }
 
-        /* Touch Controls */
+        /* Touch Controls — layout único, sem flex duplicado */
+        #touch-controls {
+            position: absolute;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            height: 190px;
+            z-index: 25;
+            pointer-events: none;
+        }
         #joystick-zone {
             position: absolute;
-            left: 20px;
-            bottom: 20px;
-            width: 140px;
-            height: 140px;
+            left: max(14px, env(safe-area-inset-left));
+            bottom: max(14px, env(safe-area-inset-bottom));
+            width: 132px;
+            height: 132px;
             border-radius: 50%;
-            background: rgba(20, 32, 26, 0.4);
-            border: 2px solid rgba(180, 210, 195, 0.2);
+            background: radial-gradient(circle, rgba(40,60,50,.48), rgba(10,18,14,.72));
+            border: 2px solid rgba(180, 210, 195, 0.28);
+            box-shadow: 0 8px 24px rgba(0,0,0,.45), inset 0 0 20px rgba(100,160,130,.08);
             touch-action: none;
-            z-index: 25;
+            z-index: 26;
             display: flex;
             align-items: center;
             justify-content: center;
+            pointer-events: auto;
+        }
+        #joystick-zone::before {
+            content: '';
+            position: absolute;
+            inset: 12px;
+            border: 1px dashed rgba(180,210,195,.16);
+            border-radius: 50%;
+            pointer-events: none;
         }
         #joystick-knob {
-            width: 54px;
-            height: 54px;
+            position: relative;
+            z-index: 2;
+            width: 52px;
+            height: 52px;
             border-radius: 50%;
-            background: radial-gradient(circle, rgba(180, 210, 195, 0.8) 0%, rgba(80, 110, 95, 0.6) 100%);
-            border: 1px solid rgba(255, 255, 255, 0.4);
-            box-shadow: 0 4px 12px rgba(0,0,0,0.5);
-            transform: translate(0px, 0px);
-            transition: transform 0.05s ease-out;
+            background: radial-gradient(circle at 35% 30%, rgba(220,240,230,.95), rgba(75,105,90,.9) 62%, rgba(30,45,38,.95));
+            border: 1px solid rgba(255,255,255,.5);
+            box-shadow: 0 4px 14px rgba(0,0,0,.55), 0 0 14px rgba(100,220,165,.12);
+            transform: translate(0,0);
+            transition: transform .035s linear;
+            pointer-events: none;
         }
-
         #action-buttons {
             position: absolute;
-            right: 18px;
-            bottom: 18px;
-            width: 166px;
+            right: max(14px, env(safe-area-inset-right));
+            bottom: max(14px, env(safe-area-inset-bottom));
+            width: 174px;
             display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 10px;
-            z-index: 25;
+            grid-template-columns: repeat(2, 78px);
+            grid-auto-rows: 62px;
+            gap: 9px;
+            z-index: 26;
             pointer-events: none;
         }
         #action-buttons .action-btn { pointer-events: auto; }
         .action-btn {
             width: 78px;
             height: 62px;
-            border-radius: 50%;
-            background: rgba(15, 25, 21, 0.85);
-            border: 1px solid rgba(160, 190, 175, 0.3);
+            padding: 5px;
+            border-radius: 18px;
+            background: rgba(12,22,17,.9);
+            border: 1px solid rgba(160,190,175,.32);
             color: #e2ebe6;
-            font-size: 11px;
-            font-weight: 700;
-            letter-spacing: 0.05em;
+            font-size: 10px;
+            font-weight: 800;
+            letter-spacing: .06em;
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            box-shadow: 0 6px 16px rgba(0,0,0,0.4);
+            gap: 2px;
+            box-shadow: 0 7px 18px rgba(0,0,0,.45), inset 0 1px 0 rgba(255,255,255,.05);
             touch-action: manipulation;
+            -webkit-tap-highlight-color: transparent;
         }
-        .action-btn:active {
-            background: rgba(45, 70, 58, 0.9);
-            transform: scale(0.95);
-        }
+        .action-btn svg { width: 20px; height: 20px; flex: 0 0 auto; }
+        .action-btn:active { transform: scale(.94); background: rgba(42,67,55,.96); }
+        .action-btn.active { border-color: rgba(114,239,179,.85); box-shadow: 0 0 0 1px rgba(114,239,179,.18), 0 7px 18px rgba(0,0,0,.45); }
         .action-btn.primary {
             width: 78px;
             height: 62px;
-            border-color: rgba(130, 220, 175, 0.6);
-            background: radial-gradient(circle, rgba(28, 55, 42, 0.9) 0%, rgba(12, 24, 18, 0.9) 100%);
+            border-color: rgba(130,220,175,.62);
+            background: radial-gradient(circle at 50% 35%, rgba(35,70,52,.95), rgba(10,21,16,.96));
         }
 
+        /* HUD */
+        #hud { isolation: isolate; }
+        .hud-top-bar {
+            display: grid !important;
+            grid-template-columns: minmax(170px,1fr) auto auto;
+            align-items: start;
+            gap: 8px;
+            flex-wrap: nowrap !important;
+        }
+        .hud-panel { min-width: 0; }
+        #status-cards { display:grid; grid-template-columns: repeat(3,minmax(78px,1fr)); gap:6px; }
+        .status-card { min-width:78px; }
+        .hud-obj-box { box-shadow: 0 8px 28px rgba(0,0,0,.42); }
+        #inventory-bar { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        #hud-objective { overflow-wrap:anywhere; }
+
+        @media (max-width: 900px) and (orientation: landscape) {
+            .hud-top-bar { grid-template-columns: minmax(155px,1fr) auto 62px; gap:6px; }
+            #status-cards { grid-template-columns: repeat(3, minmax(68px,1fr)); }
+            .status-card { min-width:68px; }
+            #joystick-zone { width:112px; height:112px; left:12px; bottom:12px; }
+            #joystick-knob { width:46px; height:46px; }
+            #action-buttons { right:12px; bottom:12px; width:156px; grid-template-columns: repeat(2,70px); grid-auto-rows:54px; gap:7px; }
+            .action-btn,.action-btn.primary { width:70px; height:54px; border-radius:16px; font-size:8px; }
+            .action-btn svg { width:17px; height:17px; }
+            #minimap-canvas { width:62px !important; height:62px !important; }
+        }
+        @media (max-width: 560px) and (orientation: landscape) {
+            .hud-top-bar { grid-template-columns: minmax(130px,1fr) auto 56px; }
+            #status-cards { grid-template-columns: repeat(3, 62px); }
+            .status-card { min-width:62px; }
+            #minimap-canvas { width:54px !important; height:54px !important; }
+            #joystick-zone { width:98px; height:98px; }
+            #joystick-knob { width:40px; height:40px; }
+            #action-buttons { width:136px; grid-template-columns: repeat(2,62px); grid-auto-rows:48px; gap:6px; }
+            .action-btn,.action-btn.primary { width:62px; height:48px; border-radius:14px; }
+            .action-btn svg { width:15px; height:15px; }
+        }
+        @media (orientation: portrait) {
+            #portrait-warning { display:flex !important; }
+            #hud { opacity:.35; }
+        }
         /* Pulse highlight for target indicator */
         @keyframes pulse-ring {
             0% { transform: translate(-50%, -50%) scale(0.8); opacity: 0.8; }
@@ -205,6 +271,7 @@
 </style>
 </head>
 <body class="select-none overflow-hidden scanlines">
+    <div id="portrait-warning" style="display:none;position:fixed;inset:0;z-index:100;background:#030605;color:#dff5e9;align-items:center;justify-content:center;text-align:center;padding:28px;font-family:Inter,sans-serif"><div><div style="font-size:42px">↻</div><strong style="display:block;font-size:18px;margin:10px 0">Gire o celular</strong><span style="opacity:.7;font-size:13px">Jogue em modo horizontal para usar os controles.</span></div></div>
 
     <!-- Canvas Container -->
     <div id="game-container" class="absolute inset-0 z-0"></div>
@@ -217,97 +284,59 @@
 
     <!-- HUD Overlay -->
     <div id="hud" class="fixed inset-0 z-20 pointer-events-none p-2 md:p-5 flex flex-col justify-between hidden">
-        <!-- Top Status Bar & Minimap -->
-        <div class="hud-top-bar flex flex-wrap md:flex-nowrap justify-between items-center md:items-start gap-2 w-full max-w-5xl mx-auto">
-            <!-- Room & Location Card -->
-            <div class="hud-panel glass-panel rounded-xl p-2 md:p-3 px-3 md:px-4 pointer-events-auto flex items-center gap-2 md:gap-3">
-                <div class="w-2.5 h-2.5 md:w-3 md:h-3 rounded-full bg-emerald-500 animate-pulse"></div>
-                <div>
-                    <div id="hud-room" class="text-[10px] md:text-xs font-bold tracking-widest text-emerald-400 uppercase">RECEPÇÃO E TRIAGEM</div>
-                    <div id="hud-sub" class="text-[9px] md:text-[10px] text-gray-400 font-mono">SETOR 01 · TÉRREO</div>
+        <!-- Top Status Bar -->
+        <div class="hud-top-bar w-full max-w-5xl mx-auto">
+            <div class="hud-panel glass-panel rounded-xl p-2 md:p-3 px-3 md:px-4 pointer-events-auto flex items-center gap-2">
+                <div class="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse flex-none"></div>
+                <div class="min-w-0">
+                    <div id="hud-room" class="text-[10px] md:text-xs font-bold tracking-widest text-emerald-400 uppercase truncate">RECEPÇÃO E TRIAGEM</div>
+                    <div id="hud-sub" class="text-[9px] md:text-[10px] text-gray-400 font-mono truncate">SETOR 01 · TÉRREO</div>
                 </div>
             </div>
-
-            <!-- Vitals & Battery Gauges -->
-            <div class="flex gap-1.5 md:gap-2">
-                <!-- Health -->
-                <div class="hud-panel glass-panel rounded-xl p-1.5 md:p-2 px-2.5 md:px-3 min-w-[80px] md:min-w-[110px]">
-                    <div class="flex justify-between items-center text-[9px] md:text-[10px] font-bold tracking-wider text-gray-300 mb-0.5 md:mb-1">
-                        <span>SAÚDE</span>
-                        <span id="hp-val" class="text-emerald-400 font-mono">100%</span>
-                    </div>
-                    <div class="w-full h-1 md:h-1.5 bg-gray-800 rounded-full overflow-hidden">
-                        <div id="hp-bar" class="h-full bg-emerald-500 transition-all duration-300" style="width: 100%;"></div>
-                    </div>
+            <div id="status-cards">
+                <div class="status-card hud-panel glass-panel rounded-xl p-1.5 md:p-2 px-2 md:px-3">
+                    <div class="flex justify-between items-center text-[8px] md:text-[10px] font-bold text-gray-300 mb-1"><span>SAÚDE</span><span id="hp-val" class="text-emerald-400 font-mono">100%</span></div>
+                    <div class="w-full h-1.5 bg-gray-800 rounded-full overflow-hidden"><div id="hp-bar" class="h-full bg-emerald-500" style="width:100%"></div></div>
                 </div>
-                <!-- Battery -->
-                <div class="hud-panel glass-panel rounded-xl p-1.5 md:p-2 px-2.5 md:px-3 min-w-[80px] md:min-w-[110px]">
-                    <div class="flex justify-between items-center text-[9px] md:text-[10px] font-bold tracking-wider text-gray-300 mb-0.5 md:mb-1">
-                        <span>BATERIA</span>
-                        <span id="bat-val" class="text-amber-400 font-mono">100%</span>
-                    </div>
-                    <div class="w-full h-1 md:h-1.5 bg-gray-800 rounded-full overflow-hidden">
-                        <div id="bat-bar" class="h-full bg-amber-400 transition-all duration-300" style="width: 100%;"></div>
-                    </div>
+                <div class="status-card hud-panel glass-panel rounded-xl p-1.5 md:p-2 px-2 md:px-3">
+                    <div class="flex justify-between items-center text-[8px] md:text-[10px] font-bold text-gray-300 mb-1"><span>BATERIA</span><span id="bat-val" class="text-amber-400 font-mono">100%</span></div>
+                    <div class="w-full h-1.5 bg-gray-800 rounded-full overflow-hidden"><div id="bat-bar" class="h-full bg-amber-400" style="width:100%"></div></div>
+                </div>
+                <div class="status-card hud-panel glass-panel rounded-xl p-1.5 md:p-2 px-2 md:px-3">
+                    <div class="flex justify-between items-center text-[8px] md:text-[10px] font-bold text-gray-300 mb-1"><span>FÔLEGO</span><span id="stamina-val" class="text-sky-300 font-mono">100%</span></div>
+                    <div class="w-full h-1.5 bg-gray-800 rounded-full overflow-hidden"><div id="stamina-bar" class="h-full bg-sky-300" style="width:100%"></div></div>
                 </div>
             </div>
-
-            <!-- Mini Map Radar -->
-            <div class="glass-panel p-1 rounded-xl hidden sm:block">
-                <canvas id="minimap-canvas" width="100" height="100"></canvas>
-            </div>
+            <div class="hud-panel glass-panel p-1 rounded-xl hidden sm:block"><canvas id="minimap-canvas" width="100" height="100"></canvas></div>
         </div>
 
-        <!-- Objective & Inventory Banner -->
-        <div class="w-full max-w-md mx-auto my-0.5 pointer-events-auto flex flex-col gap-1 md:gap-2">
-            <div class="hud-obj-box glass-panel rounded-lg p-2 px-3 text-center border-l-4 border-l-emerald-500 shadow-lg">
+        <!-- Objective -->
+        <div class="w-full max-w-lg mx-auto my-0.5 pointer-events-none flex flex-col gap-1">
+            <div class="hud-obj-box glass-panel rounded-lg p-2 px-3 text-center border-l-4 border-l-emerald-500">
                 <div class="text-[8px] md:text-[9px] font-bold tracking-widest text-emerald-400 uppercase mb-0.5">OBJETIVO ATUAL</div>
-                <div id="hud-objective" class="hud-obj-text text-[10px] md:text-xs font-medium text-gray-200">Investigue o hospital e encontre uma forma de reativar a energia.</div>
+                <div id="hud-objective" class="text-[10px] md:text-xs font-medium text-gray-200 leading-tight">Investigue o hospital e encontre uma forma de reativar a energia.</div>
             </div>
-
-            <!-- Inventory Icons Bar -->
-            <div id="inventory-bar" class="glass-panel rounded-lg p-1 px-2 md:p-1.5 md:px-3 flex justify-center gap-2 md:gap-3 text-[10px] md:text-xs font-mono text-gray-400">
+            <div id="inventory-bar" class="glass-panel rounded-lg p-1 px-2 flex justify-center gap-2 md:gap-3 text-[9px] md:text-[10px] font-mono text-gray-400">
                 <span id="inv-keycard" class="opacity-30">🔑 CARTÃO UTI</span>
-                <span id="inv-pass" class="opacity-30">📄 SENHA FARMÁCIA</span>
+                <span id="inv-pass" class="opacity-30">📄 SENHA</span>
                 <span id="inv-power" class="opacity-30">⚡ GERADOR</span>
             </div>
         </div>
 
-        <!-- Toast Notification Center -->
-        <div id="toast" class="fixed top-24 left-1/2 -translate-x-1/2 glass-panel rounded-full px-5 py-2 text-xs font-semibold text-emerald-300 opacity-0 transition-opacity duration-300 pointer-events-none z-30 shadow-lg border-emerald-500/30">
-            Mensagem de sistema
-        </div>
+        <div id="toast" class="fixed top-20 left-1/2 -translate-x-1/2 glass-panel rounded-full px-4 py-2 text-xs font-semibold text-emerald-300 opacity-0 transition-opacity duration-300 pointer-events-none z-30 shadow-lg">Mensagem de sistema</div>
 
-        <!-- Touch Controls Layout -->
-        <div id="touch-controls" class="w-full flex justify-between items-end pb-2 pointer-events-auto">
-            <div id="joystick-zone">
-                <div id="joystick-knob"></div>
-            </div>
-
-            <div class="flex flex-col gap-3 items-end pr-2">
-                <div class="flex gap-2">
-                    <button id="btn-flash" class="action-btn">
-                        <svg class="w-5 h-5 mb-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
-                        <span>LUZ</span>
-                    </button>
-                    <button id="btn-crouch" class="action-btn">
-                        <svg class="w-5 h-5 mb-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 14l-7 7m0 0l-7-7m7 7V3"/></svg>
-                        <span>SIGILO</span>
-                    </button>
-                </div>
-                <div class="flex gap-2 items-center">
-                    <button id="btn-run" class="action-btn">
-                        <svg class="w-5 h-5 mb-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
-                        <span>CORRER</span>
-                    </button>
-                    <button id="btn-interact" class="action-btn primary">
-                        <svg class="w-6 h-6 mb-0.5 text-emerald-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 15l-2 5L9 9l11 4-5 2zm0 0l5 5M7.188 2.239l.777 2.897M5.136 7.965l-2.898-.777M13.95 4.05l-2.122 2.122m-5.657 5.656l-2.12 2.122"/></svg>
-                        <span>USAR</span>
-                    </button>
-                </div>
+        <!-- Touch Controls: cada botão ocupa uma célula fixa -->
+        <div id="touch-controls">
+            <div id="joystick-zone" aria-label="Joystick virtual"><div id="joystick-knob"></div></div>
+            <div id="action-buttons">
+                <button type="button" id="btn-flash" class="action-btn"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg><span>LUZ</span></button>
+                <button type="button" id="btn-crouch" class="action-btn"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 14l-7 7m0 0l-7-7m7 7V3"/></svg><span>SIGILO</span></button>
+                <button type="button" id="btn-run" class="action-btn"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14m0 0h7m-7 0v7"/></svg><span>CORRER</span></button>
+                <button type="button" id="btn-interact" class="action-btn primary"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 15l-2 5L9 9l11 4-5 2zm0 0l5 5M7.188 2.239l.777 2.897M5.136 7.965l-2.898-.777M13.95 4.05l-2.122 2.122m-5.657 5.656l-2.12 2.122"/></svg><span>USAR</span></button>
             </div>
         </div>
     </div>
+div>
 
     <!-- Start / Boot Menu Modal -->
     <div id="boot-screen" class="fixed inset-0 z-40 flex items-center justify-center p-4 bg-gradient-to-b from-gray-950 via-emerald-950/40 to-black">
@@ -900,7 +929,7 @@
             group.add(hair);
 
             for (const side of [-1, 1]) {
-                const arm = new THREE.Mesh(new THREE.CapsuleGeometry(0.085, 0.38, 4, 8), suitMat);
+                const arm = new THREE.Mesh(new THREE.CylinderGeometry(0.10, 0.10, 0.55, 10), suitMat);
                 arm.position.set(side * 0.31, 1.02, -0.01);
                 arm.rotation.z = side * 0.16;
                 arm.castShadow = true;
@@ -972,7 +1001,7 @@
 
             enemyGroup.add(torso, head, jaw, eyeL, eyeR);
             for (const side of [-1, 1]) {
-                const arm = new THREE.Mesh(new THREE.CapsuleGeometry(0.08, 0.48, 4, 8), cloth);
+                const arm = new THREE.Mesh(new THREE.CylinderGeometry(0.095, 0.095, 0.62, 10), cloth);
                 arm.position.set(side * 0.34, 0.88, -0.02);
                 arm.rotation.z = side * 0.25;
                 arm.rotation.x = 0.15;
@@ -1011,74 +1040,62 @@
             const zone = $('joystick-zone');
             const knob = $('joystick-knob');
             let joystickActive = false;
+            let pointerId = null;
             let startX = 0, startY = 0;
 
-            zone.addEventListener('pointerdown', e => {
-                joystickActive = true;
-                startX = e.clientX;
-                startY = e.clientY;
-                zone.setPointerCapture(e.pointerId);
-            });
-
-            zone.addEventListener('pointermove', e => {
-                if (!joystickActive) return;
-                const dx = e.clientX - startX;
-                const dy = e.clientY - startY;
+            const setJoystick = (clientX, clientY) => {
+                const dx = clientX - startX;
+                const dy = clientY - startY;
+                const maxR = Math.max(20, zone.clientWidth / 2 - 14);
                 const dist = Math.hypot(dx, dy);
-                const maxR = (zone.clientWidth / 2) - 10 || 45;
-
-                const angle = Math.atan2(dy, dx);
-                const clampedR = Math.min(dist, maxR);
-
-                const knobX = Math.cos(angle) * clampedR;
-                const knobY = Math.sin(angle) * clampedR;
-
+                const scale = dist > maxR ? maxR / dist : 1;
+                const knobX = dx * scale;
+                const knobY = dy * scale;
                 knob.style.transform = `translate(${knobX}px, ${knobY}px)`;
-
-                // Coordenadas da tela: para baixo = +Z no mapa do hospital.
+                // Tela: cima = -Y -> mundo: cima = -Z. Baixo = +Z.
                 Game.touchDir.x = knobX / maxR;
-                Game.touchDir.y = knobY / maxR;
-            });
-
-            const resetJoystick = e => {
-                joystickActive = false;
-                knob.style.transform = `translate(0px, 0px)`;
-                Game.touchDir.x = 0;
-                Game.touchDir.y = 0;
+                // O eixo Y da tela cresce para baixo; no mundo do jogo, o eixo Z positivo
+                // corresponde ao movimento visual para cima. Invertendo aqui, o joystick
+                // passa a respeitar a direção física do dedo: baixo = baixo, cima = cima.
+                Game.touchDir.y = -knobY / maxR;
             };
+            const resetJoystick = () => {
+                joystickActive = false; pointerId = null;
+                knob.style.transform = 'translate(0,0)';
+                Game.touchDir.x = 0; Game.touchDir.y = 0;
+            };
+            zone.addEventListener('pointerdown', e => {
+                e.preventDefault(); joystickActive = true; pointerId = e.pointerId;
+                startX = e.clientX; startY = e.clientY; zone.setPointerCapture(e.pointerId); setJoystick(e.clientX,e.clientY);
+            }, {passive:false});
+            zone.addEventListener('pointermove', e => {
+                if (!joystickActive || e.pointerId !== pointerId) return;
+                e.preventDefault(); setJoystick(e.clientX,e.clientY);
+            }, {passive:false});
+            ['pointerup','pointercancel','lostpointercapture'].forEach(ev => zone.addEventListener(ev, resetJoystick));
 
-            zone.addEventListener('pointerup', resetJoystick);
-            zone.addEventListener('pointercancel', resetJoystick);
-
-            $('btn-flash').addEventListener('click', () => {
+            const setFlash = () => {
                 AudioSys.playClick();
                 if (!Game.flashOn && Game.battery <= 0) { showToast('Bateria da lanterna esgotada.'); return; }
                 Game.flashOn = !Game.flashOn;
-                Game.player.light.visible = Game.flashOn;
-            });
-
-            $('btn-crouch').addEventListener('click', () => {
-                AudioSys.playClick();
-                Game.crouch = !Game.crouch;
-                showToast(Game.crouch ? "Modo Sigilo Ativado" : "Modo Normal");
-            });
-
-            $('btn-run').addEventListener('pointerdown', () => Game.running = true);
-            $('btn-run').addEventListener('pointerup', () => Game.running = false);
-
+                if (Game.player.light) Game.player.light.visible = Game.flashOn;
+                $('btn-flash').classList.toggle('active', Game.flashOn);
+            };
+            $('btn-flash').addEventListener('click', setFlash);
+            $('btn-crouch').addEventListener('click', () => { AudioSys.playClick(); Game.crouch=!Game.crouch; $('btn-crouch').classList.toggle('active',Game.crouch); showToast(Game.crouch?'Modo Sigilo Ativado':'Modo Normal'); });
+            const stopRun=()=>{Game.running=false; $('btn-run').classList.remove('active');};
+            $('btn-run').addEventListener('pointerdown', e=>{e.preventDefault(); Game.running=true; $('btn-run').classList.add('active'); $('btn-run').setPointerCapture?.(e.pointerId);});
+            ['pointerup','pointercancel','lostpointercapture'].forEach(ev=>$('btn-run').addEventListener(ev,stopRun));
             $('btn-interact').addEventListener('click', handleInteraction);
-
+            window.addEventListener('blur',()=>{stopRun();resetJoystick();});
             window.addEventListener('keydown', e => {
-                Game.keys[e.code] = true;
-                if (e.code === 'KeyE') handleInteraction();
-                if (e.code === 'KeyF') {
-                    AudioSys.playClick();
-                    Game.flashOn = !Game.flashOn;
-                    Game.player.light.visible = Game.flashOn;
-                }
+                Game.keys[e.code]=true;
+                if (['ArrowUp','ArrowDown','ArrowLeft','ArrowRight','Space'].includes(e.code)) e.preventDefault();
+                if (e.code==='KeyE') handleInteraction();
+                if (e.code==='KeyF') setFlash();
+                if (e.code==='ShiftLeft'||e.code==='ShiftRight') Game.running=true;
             });
-            window.addEventListener('keyup', e => Game.keys[e.code] = false);
-
+            window.addEventListener('keyup', e => { Game.keys[e.code]=false; if(e.code==='ShiftLeft'||e.code==='ShiftRight') stopRun(); });
             $('btn-start-game').addEventListener('click', startGame);
             $('btn-close-modal').addEventListener('click', closeModal);
             $('btn-retry').addEventListener('click', () => window.location.reload());
@@ -1109,7 +1126,8 @@
             $('hud').classList.remove('hidden');
             Game.active = true;
             Game.flashOn = true;
-            Game.player.light.visible = true;
+            if (Game.player.light) { Game.player.light.visible = true; Game.player.light.intensity = 8.0; }
+            $('btn-flash').classList.add('active');
             updateHUD();
         }
 
@@ -1300,12 +1318,19 @@
                 if (!checkCollision(nextX, Game.player.z)) Game.player.x = nextX;
                 if (!checkCollision(Game.player.x, nextZ)) Game.player.z = nextZ;
 
-                Game.player.angle = Math.atan2(moveX, moveZ);
+                Game.player.angle = Math.atan2(moveX, -moveZ);
                 Game.player.mesh.rotation.y = Game.player.angle;
 
                 if (Math.random() < (Game.running ? 0.35 : 0.18)) {
                     AudioSys.playStep();
                 }
+            }
+
+            if (Game.running && len > 0.05) {
+                Game.stamina = Math.max(0, Game.stamina - 30 * dt);
+                if (Game.stamina <= 0) Game.running = false;
+            } else {
+                Game.stamina = Math.min(100, Game.stamina + 18 * dt);
             }
 
             // Battery drain logic when flashlight is turned on
@@ -1436,15 +1461,24 @@
             }
         }
 
+        function updateRoomHUD() {
+            let room='CORREDOR PRINCIPAL', sub='SETOR 00 · TÉRREO';
+            if (Game.player.z > 11 && Game.player.x < -2.6) { room='RECEPÇÃO E TRIAGEM'; sub='SETOR 01 · TÉRREO'; }
+            else if (Game.player.z < 5 && Game.player.z > -3 && Game.player.x > 2.6) { room='ARQUIVO MORTO'; sub='SETOR 02 · ACESSO RESTRITO'; }
+            else if (Game.player.z < -3 && Game.player.x < -2.6) { room='FARMÁCIA'; sub='SETOR 03 · CADEIA DE FRIO'; }
+            else if (Game.player.z < -8 && Game.player.x > 2.6) { room='UTI'; sub='SETOR 04 · CONTROLE'; }
+            $('hud-room').textContent=room; $('hud-sub').textContent=sub;
+        }
         function updateHUD() {
-            $('hp-val').textContent = `${Math.max(0, Math.round(Game.hp))}%`;
-            $('hp-bar').style.width = `${Math.max(0, Game.hp)}%`;
-
-            $('bat-val').textContent = `${Math.max(0, Math.round(Game.battery))}%`;
-            $('bat-bar').style.width = `${Math.max(0, Game.battery)}%`;
+            const hp=Math.max(0,Math.min(100,Game.hp)), bat=Math.max(0,Math.min(100,Game.battery)), sta=Math.max(0,Math.min(100,Game.stamina));
+            $('hp-val').textContent=`${Math.round(hp)}%`; $('hp-bar').style.width=`${hp}%`;
+            $('bat-val').textContent=`${Math.round(bat)}%`; $('bat-bar').style.width=`${bat}%`;
+            $('stamina-val').textContent=`${Math.round(sta)}%`; $('stamina-bar').style.width=`${sta}%`;
+            updateRoomHUD();
         }
 
         function onWindowResize() {
+            if (!camera || !renderer) return;
             camera.aspect = window.innerWidth / window.innerHeight;
             camera.updateProjectionMatrix();
             renderer.setSize(window.innerWidth, window.innerHeight);
