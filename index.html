@@ -67,81 +67,103 @@ const canvas=document.getElementById('game'),ctx=canvas.getContext('2d');
 let W=innerWidth,H=innerHeight,dpr=1,scale=1,brightness=1,reduced=false;
 const settings={brightness:1,uiScale:1,reduced:false};
 function resize(){dpr=Math.min(devicePixelRatio||1,1.5);W=innerWidth;H=innerHeight;canvas.width=Math.round(W*dpr);canvas.height=Math.round(H*dpr);canvas.style.width=W+'px';canvas.style.height=H+'px';ctx.setTransform(dpr,0,0,dpr,0,0)}addEventListener('resize',resize);resize();
-const TILE=64, mapW=37,mapH=27;
+const TILE=64, mapW=45,mapH=33;
 const grid=Array.from({length:mapH},()=>Array(mapW).fill(1));
 function carve(x,y,w,h){for(let j=y;j<y+h;j++)for(let i=x;i<x+w;i++)if(grid[j]&&grid[j][i]!==undefined)grid[j][i]=0}
-// Planta redesenhada: blocos fechados + corredores explícitos.
-carve(13,1,11,7);       // emergência
-carve(8,9,21,5);        // recepção / arquivo
-carve(4,9,4,9);         // enfermaria
-carve(29,9,5,9);        // farmácia
-carve(13,14,11,5);      // UTI
-carve(13,20,11,5);      // manutenção
-carve(17,25,3,1);       // saída
-// corredores de ligação, sem buracos diagonais
-carve(18,7,1,2);        // emergência -> recepção
-carve(12,11,1,1);       // recepção -> enfermaria
-carve(28,11,1,1);       // recepção -> farmácia
-carve(18,13,1,1);       // recepção -> UTI
-carve(18,19,1,1);       // UTI -> manutenção
-carve(18,24,1,1);       // manutenção -> saída
+/*
+  PLANTA BASE — primeiro arquitetura, depois decoração.
+  O hospital tem um eixo de circulação central e seis zonas funcionais.
+  Cada abertura entre zonas é intencional; não há salas “soltas” nem móveis
+  colocados para tampar caminhos.
+*/
+carve(20,2,5,29);        // corredor principal
+carve(5,2,15,8);         // emergência / triagem
+carve(26,2,14,8);        // recepção / administrativo
+carve(5,12,15,9);        // enfermaria / isolamento
+carve(26,12,9,9);        // farmácia / almoxarifado
+carve(5,23,15,8);        // UTI
+carve(26,23,14,8);       // manutenção / gerador
+// átrio final e saída
+carve(20,31,5,1);
+// vãos de circulação, sempre com uma célula de acesso controlável por porta
+carve(19,5,2,1);         // emergência -> corredor
+carve(25,5,2,1);         // corredor -> recepção
+carve(19,16,2,1);        // enfermaria -> corredor
+carve(25,16,2,1);        // corredor -> farmácia
+carve(19,27,2,1);        // UTI -> corredor
+carve(25,27,2,1);        // corredor -> manutenção
+carve(22,31,1,1);        // corredor -> saída
+
 const rooms=[
- {n:'ALA DE EMERGÊNCIA',sub:'TRIAGEM / OBSERVAÇÃO',x:13,y:1,w:11,h:7,theme:'emergency'},
- {n:'RECEPÇÃO',sub:'LOBBY / ARQUIVO',x:8,y:9,w:21,h:5,theme:'reception'},
- {n:'ENFERMARIA',sub:'LEITOS DE ISOLAMENTO',x:4,y:9,w:4,h:9,theme:'ward'},
- {n:'FARMÁCIA',sub:'SUPRIMENTOS / CONTROLE',x:29,y:9,w:5,h:9,theme:'pharmacy'},
- {n:'UTI',sub:'TERAPIA INTENSIVA',x:13,y:14,w:11,h:5,theme:'icu'},
- {n:'MANUTENÇÃO',sub:'GERADOR / SERVIÇOS',x:13,y:20,w:11,h:5,theme:'maintenance'},
- {n:'SAÍDA PRINCIPAL',sub:'ACESSO EXTERNO',x:17,y:25,w:3,h:1,theme:'exit'}
+ {n:'EMERGÊNCIA',sub:'TRIAGEM · OBSERVAÇÃO · PROCEDIMENTOS',x:5,y:2,w:15,h:8,theme:'emergency'},
+ {n:'RECEPÇÃO',sub:'LOBBY · REGISTRO · ARQUIVO',x:26,y:2,w:14,h:8,theme:'reception'},
+ {n:'ENFERMARIA',sub:'ISOLAMENTO · POSTO DE ENFERMAGEM',x:5,y:12,w:15,h:9,theme:'ward'},
+ {n:'FARMÁCIA',sub:'DISPENSAÇÃO · CADEIA DE FRIO',x:26,y:12,w:9,h:9,theme:'pharmacy'},
+ {n:'UTI',sub:'TERAPIA INTENSIVA · MONITORIZAÇÃO',x:5,y:23,w:15,h:8,theme:'icu'},
+ {n:'MANUTENÇÃO',sub:'GERADOR · QUADRO ELÉTRICO · SERVIÇO',x:26,y:23,w:14,h:8,theme:'maintenance'},
+ {n:'CORREDOR CENTRAL',sub:'EIXO DE SERVIÇO E ACESSO',x:20,y:2,w:5,h:29,theme:'corridor'},
+ {n:'SAÍDA DE SERVIÇO',sub:'ACESSO EXTERNO',x:20,y:31,w:5,h:1,theme:'exit'}
 ];
 const furniture=[];
 function prop(x,y,w,h,type='cabinet',block=true){furniture.push({x,y,w,h,type,block})}
-// Emergência: leitos paralelos, bancada médica e armários
-prop(15.5,3.0,2.2,1.05,'bed');prop(20.5,3.0,2.2,1.05,'bed');prop(15.5,5.2,2.2,1.05,'bed');prop(20.5,5.2,2.2,1.05,'bed');
-prop(14.1,2.0,1.1,.55,'locker');prop(22.9,2.0,1.1,.55,'locker');prop(17.9,6.2,3.2,.65,'desk',false);
-// Recepção: balcão e arquivo, deixando eixo central livre
-prop(11.0,11.0,4.0,1.0,'desk');prop(15.0,10.7,1.1,1.6,'cabinet');prop(25.7,10.7,1.1,1.6,'cabinet');prop(26.0,12.2,2.0,.65,'desk',false);prop(9.5,12.3,1.0,.6,'chair',false);
-// Enfermaria: leitos junto às paredes, corredor central
-prop(5.2,11.2,1.1,2.2,'bed');prop(5.2,15.0,1.1,2.2,'bed');prop(6.8,12.1,.8,.55,'locker');prop(6.8,15.9,.8,.55,'locker');
-// Farmácia: prateleiras nas laterais, cofre/armário no fundo
-prop(30.3,11.2,.8,2.5,'shelf');prop(32.2,11.2,.8,2.5,'shelf');prop(30.3,15.2,.8,2.5,'shelf');prop(32.2,15.2,.8,2.5,'shelf');prop(33.0,16.9,.7,.7,'cabinet');
-// UTI: leitos separados por espaço
-prop(15.5,16.0,2.2,1.05,'bed');prop(21.5,16.0,2.2,1.05,'bed');prop(15.5,18.0,2.2,.75,'stretcher',false);prop(21.5,18.0,2.2,.75,'stretcher',false);
-// Manutenção: equipamentos encostados nas paredes, centro livre
-prop(14.8,22.0,1.8,1.3,'crate');prop(21.8,22.0,1.8,1.3,'crate');prop(14.8,24.0,1.5,.8,'cabinet');prop(22.0,24.0,1.5,.8,'cabinet');prop(22,23,1.0,1.8,'generator');
+// EMERGÊNCIA: leitos nas paredes laterais, bancada de triagem no fundo, corredor livre.
+prop(7.2,4.0,3.1,1.35,'bed'); prop(14.0,4.0,3.1,1.35,'bed');
+prop(7.2,7.0,3.1,1.35,'bed'); prop(14.0,7.0,3.1,1.35,'bed');
+prop(11.0,2.9,3.0,.75,'desk',false); prop(6.0,2.8,.75,1.1,'cabinet'); prop(17.8,2.8,.75,1.1,'cabinet');
+prop(10.8,8.8,1.0,.55,'chair',false);
+// RECEPÇÃO: balcão frontal, espera e arquivo; acesso central sem obstáculos.
+prop(30.0,3.4,7.0,1.0,'desk'); prop(28.0,6.2,1.1,1.1,'chair',false); prop(31.0,6.2,1.1,1.1,'chair',false); prop(34.0,6.2,1.1,1.1,'chair',false);
+prop(38.2,4.0,.8,2.8,'cabinet'); prop(38.2,7.5,.8,1.2,'cabinet'); prop(27.5,8.3,1.0,.6,'chair',false);
+// ENFERMARIA: seis boxes de leito, separação por cortinas/armários baixos.
+prop(7.0,14.4,2.8,1.25,'bed'); prop(14.0,14.4,2.8,1.25,'bed');
+prop(7.0,18.0,2.8,1.25,'bed'); prop(14.0,18.0,2.8,1.25,'bed');
+prop(5.8,12.9,.8,1.4,'locker'); prop(16.2,12.9,.8,1.4,'locker'); prop(10.5,20.0,3.5,.7,'desk',false);
+// FARMÁCIA: estantes nas laterais e bancada de dispensação; corredor de serviço livre.
+prop(27.4,14.5,.9,3.4,'shelf'); prop(33.4,14.5,.9,3.4,'shelf'); prop(27.4,19.0,.9,1.5,'shelf'); prop(33.4,19.0,.9,1.5,'shelf');
+prop(30.4,13.1,3.8,.75,'desk'); prop(30.5,19.8,1.2,.8,'cabinet');
+// UTI: quatro boxes, estação de enfermagem e equipamentos de monitorização.
+prop(7.2,25.5,3.0,1.25,'bed'); prop(14.0,25.5,3.0,1.25,'bed'); prop(7.2,28.8,3.0,1.25,'bed'); prop(14.0,28.8,3.0,1.25,'bed');
+prop(10.5,24.0,3.2,.7,'desk'); prop(5.8,26.8,.8,1.4,'locker'); prop(16.2,26.8,.8,1.4,'locker');
+// MANUTENÇÃO: máquinas encostadas nas paredes, bancada técnica e gerador isolado.
+prop(28.2,25.3,2.2,1.6,'generator'); prop(37.0,25.3,1.8,1.6,'crate'); prop(28.2,29.0,2.0,1.0,'cabinet'); prop(37.0,29.0,1.8,1.0,'cabinet');
+prop(32.5,24.3,4.0,.8,'desk'); prop(32.5,27.5,2.0,.8,'crate');
 
 const doors=[
- {x:18.5,y:8.0,axis:'h',name:'porta corta-fogo',open:true,locked:false},
- {x:8.0,y:11.0,axis:'v',name:'porta da enfermaria',open:false,locked:false},
- {x:29.0,y:11.0,axis:'v',name:'porta da farmácia',open:false,locked:true},
- {x:18.0,y:14.0,axis:'h',name:'porta da UTI',open:false,locked:false},
- {x:18.0,y:19.0,axis:'h',name:'porta da manutenção',open:false,locked:false},
- {x:18.0,y:25.0,axis:'h',name:'porta da saída',open:false,locked:false}
+ {x:20,y:5,axis:'v',name:'porta corta-fogo da emergência',open:true,locked:false},
+ {x:25,y:5,axis:'v',name:'porta do lobby',open:true,locked:false},
+ {x:20,y:16,axis:'v',name:'porta da enfermaria',open:false,locked:false},
+ {x:25,y:16,axis:'v',name:'porta da farmácia',open:false,locked:true},
+ {x:20,y:27,axis:'v',name:'porta da UTI',open:false,locked:true},
+ {x:25,y:27,axis:'v',name:'porta da manutenção',open:false,locked:false},
+ {x:22.5,y:31,axis:'h',name:'porta de serviço',open:false,locked:true}
 ];
+
 const objects=[
- {id:'chart',x:22.6,y:6.1,label:'Ler prontuário',kind:'note',title:'PRONTUÁRIO 237',text:'Paciente transferido da ala de emergência para a UTI após apresentar comportamento agressivo. A equipe relata que a contenção elétrica ainda funciona. Nota manuscrita: “Não desliguem o gerador. A porta corta-fogo depende dele.”'},
- {id:'panel',x:22.0,y:23.0,label:'Examinar gerador',kind:'generator'},
- {id:'key',x:33.0,y:10.2,label:'Pegar chave da farmácia',kind:'key'},
- {id:'cabinet',x:33.0,y:16.8,label:'Examinar armário',kind:'cabinet'},
- {id:'letter',x:6.4,y:16.4,label:'Ler bilhete dobrado',kind:'note2',title:'BILHETE DA ENFERMEIRA',text:'“O código do cofre não está no teclado nem na sala. O Dr. A. repetia que a data do primeiro caso jamais deveria ser esquecida. Está no relatório de admissão, arquivado na recepção.”'},
- {id:'report',x:17.0,y:11.2,label:'Ler relatório de admissão',kind:'report'},
- {id:'safe',x:27.2,y:12.0,label:'Abrir cofre',kind:'safe'},
- {id:'card',x:21.0,y:17.0,label:'Pegar cartão de acesso',kind:'card'},
- {id:'exit',x:18.5,y:25.0,label:'Usar cartão na saída',kind:'exit'},
- {id:'knife',x:33.0,y:15.2,label:'Pegar faca cirúrgica',kind:'knife'},
- {id:'gun',x:21.0,y:22.8,label:'Pegar pistola de emergência',kind:'gun'}
+ {id:'triage',x:16.9,y:8.5,label:'Examinar ficha de triagem',kind:'triage',title:'FICHA DE TRIAGEM — 02:17',text:'A folha está presa à prancheta por uma fita hospitalar. Quase tudo foi preenchido às pressas; o campo “destino” termina em “UTI — acesso restrito”. No verso, há marcas de dedo e uma seta apontando para o corredor de serviço.'},
+ {id:'maintenanceLog',x:32.0,y:24.2,label:'Ler livro de manutenção',kind:'maintenanceLog',title:'LIVRO DE MANUTENÇÃO',text:'As páginas recentes registram quedas de tensão em três linhas. Uma anotação técnica repete a mesma ordem: “L-2 estabiliza antes de L-1; L-3 só entra depois que a carga cair”. Ao lado, há um diagrama simples dos três indicadores do quadro.'},
+ {id:'breaker',x:35.0,y:24.2,label:'Operar quadro elétrico',kind:'generator'},
+ {id:'pharmacyDoor',x:30.4,y:20.0,label:'Examinar controle da farmácia',kind:'pharmacyPuzzle'},
+ {id:'coldLog',x:28.1,y:18.8,label:'Ler registro da câmara fria',kind:'coldLog',title:'REGISTRO DA CÂMARA FRIA',text:'Três caixas foram separadas para a UTI: solução, sedativo e insulina. O registro anota apenas as faixas de armazenamento e o horário de saída. Uma etiqueta rasgada conserva os símbolos ◇, ○ e △.'},
+ {id:'records',x:36.8,y:7.7,label:'Abrir arquivo de admissões',kind:'records'},
+ {id:'recordNote',x:38.0,y:8.2,label:'Ler observação do arquivo',kind:'recordNote',title:'OBSERVAÇÃO NO ARQUIVO',text:'“Não copie o número do prontuário. A equipe usava a sequência dos horários para conferir se o lote de fichas estava completo.”'},
+ {id:'wardNote',x:16.7,y:19.3,label:'Ler anotação da enfermaria',kind:'wardNote',title:'ANOTAÇÃO NO POSTO',text:'“Se a UTI perder o acesso, o cartão fica no armário de plantão. Não levem o cartão para o corredor: ele desmagnetiza perto do quadro antigo.”'},
+ {id:'wardCabinet',x:16.2,y:18.0,label:'Abrir armário de plantão',kind:'wardCabinet'},
+ {id:'icuConsole',x:10.5,y:24.0,label:'Examinar console da UTI',kind:'icuPuzzle'},
+ {id:'icuCard',x:17.0,y:29.0,label:'Pegar cartão da UTI',kind:'card'},
+ {id:'exit',x:22.5,y:31,label:'Liberar porta de serviço',kind:'exit'}
 ];
-let hidden=false;let state={power:false,key:false,pharmacy:false,clue:false,code:false,card:false,report:false,read:false,done:false,knife:false,gun:false,ammo:0};
-const checkpoint={x:18.5,y:3.8,hp:100,st:100};
-const player={x:18.5,y:3.8,r:.24,angle:Math.PI/2,hp:100,st:100,crouch:false,run:false,flash:true};
+let hidden=false;let state={power:false,key:false,pharmacy:false,clue:false,code:false,card:false,report:false,read:false,done:false,knife:false,gun:false,ammo:0,cold:false,icu:false,records:false};
+const checkpoint={x:18.0,y:5.0,hp:100,st:100};
+const player={x:18.0,y:5.0,r:.24,angle:Math.PI/2,hp:100,st:100,crouch:false,run:false,flash:true};
 const zombies=[
- {x:6,y:12.5,homeX:6,homeY:12.5,dir:0,mode:'patrol',alert:0,hp:1,step:0,vision:true,kind:'runner'},
- {x:31,y:17,homeX:31,homeY:17,dir:Math.PI,mode:'patrol',alert:0,hp:1,step:1,vision:false,kind:'blind'},
- {x:19,y:21.5,homeX:19,homeY:21.5,dir:0,mode:'patrol',alert:0,hp:1,step:2,vision:true,kind:'stalker'}
+ {x:8.5,y:18.2,homeX:8.5,homeY:18.2,dir:0,mode:'patrol',alert:0,hp:1,step:0,vision:true,kind:'runner'},
+ {x:31,y:19.2,homeX:31,homeY:19.2,dir:Math.PI,mode:'patrol',alert:0,hp:1,step:1,vision:false,kind:'blind'},
+ {x:12,y:28.0,homeX:12,homeY:28.0,dir:0,mode:'patrol',alert:0,hp:1,step:2,vision:true,kind:'stalker'},
+ {x:35.5,y:27.5,homeX:35.5,homeY:27.5,dir:Math.PI,mode:'patrol',alert:0,hp:1,step:3,vision:true,kind:'stalker'}
 ];
-const corpses=[{x:15.8,y:2.3,rot:.2},{x:21.8,y:4.5,rot:-.7},{x:6.3,y:14.2,rot:1.1},{x:30.7,y:11.9,rot:-.4},{x:17.5,y:22.8,rot:.5}];
-const spores=[{x:16.8,y:4.2,r:.8},{x:20.6,y:15.1,r:.65},{x:31.5,y:14.9,r:.55},{x:14.5,y:23.2,r:.7},{x:7,y:10.8,r:.5}];
-const bloodPools=[{x:18.8,y:4.8,r:.35},{x:5.2,y:13.8,r:.45},{x:31.1,y:16.1,r:.28},{x:22.4,y:21.2,r:.4}];
+const corpses=[{x:9.5,y:3.2,rot:.2},{x:17.0,y:6.6,rot:-.7},{x:29.0,y:8.0,rot:1.1},{x:7.0,y:19.5,rot:-.4},{x:32.0,y:20.0,rot:.5},{x:28.5,y:28.5,rot:-.2}];
+const spores=[{x:11.5,y:6.8,r:.8},{x:15.5,y:16.0,r:.65},{x:29.5,y:16.0,r:.55},{x:12.5,y:29.5,r:.7},{x:33.0,y:28.5,r:.5}];
+const bloodPools=[{x:16.8,y:4.9,r:.35},{x:7.8,y:18.0,r:.45},{x:31.1,y:17.0,r:.28},{x:35.0,y:26.5,r:.4}];
 const keys={};let running=false,playing=false,yaw=0,joystick={x:0,y:0},joyId=null,lookId=null,lastLook=null,toastTimer;
 const $=id=>document.getElementById(id);
 function toast(s){$('toast').textContent=s;$('toast').classList.add('show');clearTimeout(toastTimer);toastTimer=setTimeout(()=>$('toast').classList.remove('show'),2200)}
@@ -159,22 +181,87 @@ function showModal(id){$(id).classList.remove('hidden')}
 function closeModal(id){$(id).classList.add('hidden')}
 function objectVisible(o){if(o.done)return false;if(o.hiddenUntil==='pharmacy'&&!state.pharmacy)return false;if(o.hiddenUntil==='code'&&!state.code)return false;return true}
 function nearby(){let best=null,bd=1.15;for(const o of objects){if(!objectVisible(o))continue;let d=dist(player,o);if(d<bd){best=o;bd=d}}for(const door of doors){const d=dist(player,door);if(d<bd){best={id:'door_'+doors.indexOf(door),x:door.x,y:door.y,label:door.open?'Fechar '+door.name:'Abrir '+door.name,kind:'door',door};bd=d}}return best}
-function interact(){if(!$('story').classList.contains('hidden')||!$('puzzle').classList.contains('hidden')||!$('ending').classList.contains('hidden')||!$('death').classList.contains('hidden'))return;let o=nearby();if(!o)return;
- switch(o.kind){
- case'door':if(o.door.locked&&!state.key&&!state.power){toast('A porta está trancada. Procure uma chave ou restaure a energia.');return}o.door.open=!o.door.open;toast(o.door.open?'Porta aberta.':'Porta fechada.');break;
- case'note':o.done=true;state.read=true;showStory(o.title,o.text);setObj('Restaure a energia na manutenção.');break;
- case'note2':o.done=true;state.clue=true;showStory(o.title,o.text);setObj('Encontre o relatório de admissão na recepção.');break;
- case'report':o.done=true;state.report=true;showStory('RELATÓRIO DE ADMISSÃO','Paciente 001 — primeiro caso registrado em 14/09. No rodapé, alguém escreveu: “A data é a chave. Use quatro algarismos, dia e mês.”');setObj('Descubra o código do cofre.');break;
- case'generator':if(!state.read){toast('Leia o prontuário antes de mexer no gerador.');return}openPuzzle('generator');break;
- case'key':if(!state.power){toast('O compartimento está sem energia.');return}o.done=true;state.key=true;toast('CHAVE DA FARMÁCIA OBTIDA.');setObj('Abra o armário da farmácia e procure o cartão.');break;
- case'knife':o.done=true;state.knife=true;toast('FACA CIRÚRGICA OBTIDA. Agache e aproxime-se pelas costas.');break;
- case'gun':o.done=true;state.gun=true;state.ammo=6;toast('PISTOLA DE EMERGÊNCIA OBTIDA · 6 DISPAROS.');break;
- case'cabinet':if(!state.key){toast('O armário está trancado. Precisa da chave da farmácia.');return}o.done=true;showStory('RECADO NO ARMÁRIO','“O cartão da UTI foi deixado na sala de observação. Se a porta principal ainda estiver fechada, o cofre da recepção guarda suprimentos de emergência.”');state.pharmacy=true;setObj('Encontre o cartão de acesso na UTI.');break;
- case'safe':if(!state.clue||!state.report){toast('Faltam pistas nos documentos do hospital.');return}openPuzzle('safe');break;
- case'card':if(!state.pharmacy){toast('Você ainda não sabe onde procurar o cartão.');return}o.done=true;state.card=true;toast('CARTÃO DE ACESSO ENCONTRADO.');setObj('Volte à saída principal.');break;
- case'exit':if(!state.card){toast('A saída exige um cartão de acesso.');return}showStory('A PORTA','O leitor pisca verde. A porta se abre com dificuldade. Do lado de fora, a cidade está sem luz; ao longe, uma sirene interrompe o silêncio. Você sobreviveu ao primeiro setor — por enquanto.');$('storyNext').onclick=()=>{closeModal('story');showModal('ending')};break;
- }}
-function openPuzzle(type){const choices=$('puzzleChoices');choices.innerHTML='';if(type==='generator'){$('puzzleTitle').textContent='PAINEL DO GERADOR';$('puzzleText').textContent='Três disjuntores estão instáveis. O aviso diz: “primeiro o circuito com menor carga, depois o intermediário; o último recebe o pico”. Observe os valores dos painéis antes de decidir.';let seq=[];[1,2,3].forEach(n=>{let b=document.createElement('button');b.className='choice';b.textContent=n===1?'DISJUNTOR 1 · 40%':n===2?'DISJUNTOR 2 · 20%':'DISJUNTOR 3 · 80%';b.onclick=()=>{seq.push(n);if(seq.length===3){if(seq.join('')==='213'){state.power=true;objects.find(o=>o.id==='generator').done=true;closeModal('puzzle');toast('ENERGIA RESTAURADA.');setObj('Procure a chave da farmácia.');showStory('ENERGIA RESTAURADA','As lâmpadas de emergência acendem uma a uma. Um ruído pesado ecoa na recepção. Algo percebeu que você está aqui.');}else{seq=[];toast('Sequência incorreta. Tente novamente.')}}};choices.appendChild(b)})}else{$('puzzleTitle').textContent='COFRE DE EMERGÊNCIA';$('puzzleText').textContent='Digite o código de quatro algarismos encontrado nos registros.';let input=document.createElement('input');input.inputMode='numeric';input.maxLength=4;input.placeholder='••••';input.style='font-size:24px;letter-spacing:.4em;text-align:center;width:160px;padding:12px;background:#080c0a;color:#fff;border:1px solid #69756d;border-radius:4px';let b=document.createElement('button');b.className='choice';b.textContent='DESBLOQUEAR';b.onclick=()=>{if(input.value==='1409'){state.code=true;objects.find(o=>o.id==='safe').done=true;closeModal('puzzle');showStory('COFRE ABERTO','Dentro do cofre: duas bandagens, um frasco de analgésico, uma lanterna reserva e um compartimento secundário lacrado. A trava secundária se abre: há uma pistola de emergência e seis munições.');toast('RECURSOS + PISTOLA DESBLOQUEADOS.')}else toast('Código incorreto. Releia os documentos.')};choices.append(input,b)}showModal('puzzle')}
+function interact(){
+  if(!$('story').classList.contains('hidden')||!$('puzzle').classList.contains('hidden')||!$('ending').classList.contains('hidden')||!$('death').classList.contains('hidden'))return;
+  const o=nearby(); if(!o)return;
+  switch(o.kind){
+    case'door':
+      if(o.door.locked){
+        if(o.door.name.includes('farmácia')&&!state.power){toast('O controle eletrônico está sem energia. Restaure o quadro da manutenção.');return}
+        if(o.door.name.includes('UTI')&&!state.key){toast('A fechadura aceita apenas o cartão de plantão.');return}
+        if(o.door.name.includes('serviço')&&!state.icu){toast('O acesso externo continua bloqueado. O console da UTI controla esta porta.');return}
+      }
+      o.door.open=!o.door.open;toast(o.door.open?'Porta aberta.':'Porta fechada.');break;
+    case'triage':
+      o.done=true;state.read=true;
+      showStory(o.title,o.text);
+      setObj('Vá à manutenção. O livro técnico deve explicar como estabilizar a rede.');
+      break;
+    case'maintenanceLog':
+      o.done=true;state.clue=true;
+      showStory(o.title,o.text);
+      setObj('Use o diagrama do livro para rearmar o quadro elétrico.');
+      break;
+    case'generator':
+      if(!state.clue){toast('O quadro está cheio de circuitos sem identificação. Procure o livro técnico.');return}
+      openPuzzle('generator');break;
+    case'coldLog':
+      o.done=true;
+      showStory(o.title,o.text);
+      setObj('No controle da farmácia, reorganize os três envios conforme o registro de temperatura.');
+      break;
+    case'pharmacyPuzzle':
+      if(!state.power){toast('O controle não responde. A energia ainda está instável.');return}
+      if(!state.records){toast('O controle pede uma confirmação do lote de admissões. Verifique o terminal da recepção.');return}
+      openPuzzle('pharmacy');break;
+    case'records':
+      if(!state.power){toast('O terminal está apagado. A recepção só volta a funcionar depois da restauração elétrica.');return}
+      openPuzzle('records');break;
+    case'recordNote':
+      showStory(o.title,o.text);break;
+    case'wardNote':
+      o.done=true;showStory(o.title,o.text);setObj('Abra o armário de plantão na enfermaria.');break;
+    case'wardCabinet':
+      if(!state.pharmacy){toast('O armário está selado com lacre de serviço. A farmácia guarda a chave do plantão.');return}
+      o.done=true;state.key=true;toast('CHAVE DE PLANTÃO OBTIDA.');setObj('Abra a porta da UTI com a chave e procure o console.');break;
+    case'icuConsole':
+      if(!state.key){toast('O console exige uma chave de plantão para liberar a manutenção.');return}
+      openPuzzle('icu');break;
+    case'card':
+      if(!state.icu){toast('O armário do cartão ainda está travado pelo protocolo de isolamento.');return}
+      o.done=true;state.card=true;toast('CARTÃO DE SERVIÇO OBTIDO.');setObj('Volte ao corredor central e libere a porta de serviço.');break;
+    case'exit':
+      if(!state.card){toast('O leitor externo exige o cartão de serviço.');return}
+      showStory('DO OUTRO LADO','O leitor demora alguns segundos para aceitar o cartão. Quando a trava cede, o ar frio do estacionamento entra pelo corredor. Não há música triunfal, nem sirenes esperando por você — apenas o gerador trabalhando ao longe e um hospital que continua respirando atrás das paredes.');
+      $('storyNext').onclick=()=>{closeModal('story');showModal('ending')};
+      break;
+  }
+}
+function openPuzzle(type){
+  const choices=$('puzzleChoices');choices.innerHTML='';
+  const finish=(title,text,obj)=>{closeModal('puzzle');showStory(title,text);if(obj)setObj(obj)};
+  if(type==='generator'){
+    $('puzzleTitle').textContent='QUADRO DE TRANSFERÊNCIA';
+    $('puzzleText').textContent='Três linhas alimentam setores diferentes. O livro não dá uma senha: ele descreve uma ordem de transferência. Arme primeiro a linha que estabiliza o painel, depois a que depende dela; a última só pode entrar quando as duas anteriores estiverem estáveis.';
+    let seq=[];const labels=[['L-1 · EMERGÊNCIA','estabiliza o painel'],['L-2 · SERVIÇO','depende da estabilização'],['L-3 · CLÍNICA','só entra por último']];
+    [1,2,3].forEach(n=>{let b=document.createElement('button');b.className='choice';b.textContent=labels[n-1][0];b.onclick=()=>{seq.push(n);b.disabled=true;if(seq.length===3){if(seq.join('')==='213'){state.power=true;objects.find(o=>o.id==='breaker').done=true;toast('REDE ESTABILIZADA.');finish('A LUZ VOLTA','As lâmpadas fluorescentes não acendem de uma vez. Primeiro a faixa da emergência, depois o lobby, depois uma fileira distante na UTI. O som dos equipamentos reaparece — e, no corredor, alguma coisa responde ao ruído.','Acesse a farmácia e descubra por que ela continua isolada.')}else{seq=[];[...choices.children].forEach(x=>x.disabled=false);toast('A sequência derrubou o relé. O painel volta ao estado anterior.')}}};choices.appendChild(b)})
+  } else if(type==='pharmacy'){
+    $('puzzleTitle').textContent='CÂMARA FRIA';
+    $('puzzleText').textContent='Há três caixas e três posições de armazenamento. Use os símbolos da etiqueta e as faixas do registro: solução fica na faixa intermediária; sedativo precisa da mais fria; insulina não pode ficar na mais quente. Organize as caixas do painel, da esquerda para a direita.';
+    let seq=[];const names=['◇ SOLUÇÃO','○ SEDATIVO','△ INSULINA'];
+    [1,2,3].forEach(n=>{let b=document.createElement('button');b.className='choice';b.textContent=names[n-1];b.onclick=()=>{seq.push(n);if(seq.length===3){if(seq.join('')==='213'){state.pharmacy=true;objects.find(o=>o.id==='pharmacyDoor').done=true;toast('CADEIA DE FRIO NORMALIZADA.');finish('UM ARMÁRIO DE SERVIÇO','Atrás do painel há uma pequena chave presa por um lacre vermelho. O rótulo diz apenas: “PLANTÃO / ÁREA RESTRITA”. O tipo de chave combina com os armários antigos da enfermaria.','Encontre o armário de plantão na enfermaria.')}else{seq=[];toast('A temperatura de uma das caixas ficaria fora do limite. Reorganize.')}}};choices.appendChild(b)})
+  } else if(type==='records'){
+    $('puzzleTitle').textContent='ARQUIVO DE ADMISSÕES';
+    $('puzzleText').textContent='O terminal pede a sequência de três horários para reconstruir o lote perdido. No arquivo, os registros estão fora de ordem. Escolha: chegada, transferência e último registro — não o número do prontuário.';
+    let seq=[];const labels=['02:17 · TRIAGEM','02:43 · TRANSFERÊNCIA','03:06 · ÚLTIMO REGISTRO'];
+    [1,2,3].forEach(n=>{let b=document.createElement('button');b.className='choice';b.textContent=labels[n-1];b.onclick=()=>{seq.push(n);if(seq.length===3){if(seq.join('')==='123'){state.records=true;toast('LOTE RECONSTRUÍDO.');finish('ARQUIVO RECUPERADO','O terminal libera uma observação interna: “O cartão de plantão permanece no armário da enfermaria até a UTI confirmar a estabilização.” A frase explica o protocolo que antes parecia apenas burocracia.','A farmácia já está ligada. Procure a chave de plantão na enfermaria.')}else{seq=[];toast('A ordem não fecha com a cronologia do lote.')}}};choices.appendChild(b)})
+  } else if(type==='icu'){
+    $('puzzleTitle').textContent='CONSOLE DE MONITORIZAÇÃO';
+    $('puzzleText').textContent='Três monitores estão desligados. O console mostra os canais A, B e C. Cada canal precisa ser ligado depois que seu anterior estabilizar; a luz de erro indica que C não pode iniciar a sequência. Observe as linhas de pulso na tela e reative os canais na ordem correta.';
+    let seq=[];[1,2,3].forEach(n=>{let b=document.createElement('button');b.className='choice';b.textContent='CANAL '+String.fromCharCode(64+n);b.onclick=()=>{seq.push(n);if(seq.length===3){if(seq.join('')==='132'){state.icu=true;objects.find(o=>o.id==='icuConsole').done=true;toast('UTI ESTABILIZADA.');finish('O PROTOCOLO TERMINA','O último monitor volta a emitir um pulso regular. No console, uma única mensagem aparece: “ACESSO DE SERVIÇO LIBERADO”. Não é uma fuga planejada; é simplesmente a primeira porta que o hospital permite abrir desde o apagão.','Pegue o cartão no armário da UTI e siga para a saída.')}else{seq=[];toast('O canal entrou em erro. Aguarde o pulso e tente outra sequência.')}}};choices.appendChild(b)})
+  }
+  showModal('puzzle');
+}
 $('puzzleClose').onclick=()=>closeModal('puzzle');$('restartDeath').onclick=()=>location.reload();
 function zombieCanSee(z){if(!z.vision)return false;const d=dist(z,player);if(hidden||d>6.4)return false;const ang=Math.atan2(player.y-z.y,player.x-z.x),delta=Math.atan2(Math.sin(ang-z.dir),Math.cos(ang-z.dir));return Math.abs(delta)<.78&&lineClear(z.x,z.y,player.x,player.y)}
 function zombieHear(z,noise){return !hidden&&noise>0&&dist(z,player)<noise}
@@ -560,7 +647,7 @@ function validateLevel(){
     return true;
   };
   const start=[Math.floor(player.x),Math.floor(player.y)];
-  const goal=[18,25];
+  const goal=[22,31];
   const q=[start],seen=new Set([start.join(',')]);
   while(q.length){
     const [x,y]=q.shift();
@@ -575,7 +662,7 @@ function validateLevel(){
 if(!validateLevel()){
   console.error('Mapa inválido: spawn e saída não estão conectados.');
   // Fail-safe: mantém a saída alcançável em vez de iniciar uma partida quebrada.
-  carve(18,24,1,1); carve(18,25,1,1);
+  carve(22,30,1,1); carve(22,31,1,1);
 }
 let last=0;function loop(ts){requestAnimationFrame(loop);let dt=Math.min(.04,(ts-last)/1000||0);last=ts;try{if(playing&&$('story').classList.contains('hidden')&&$('puzzle').classList.contains('hidden')&&$('death').classList.contains('hidden')&&$('ending').classList.contains('hidden'))update(dt);draw()}catch(err){console.error('Falha no quadro do jogo:',err);}}requestAnimationFrame(loop);
 async function immersive(){try{if(!document.fullscreenElement)await document.documentElement.requestFullscreen({navigationUI:'hide'});}catch(e){}try{if(screen.orientation&&screen.orientation.lock)await screen.orientation.lock('landscape');}catch(e){}}
