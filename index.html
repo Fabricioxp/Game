@@ -11,56 +11,7 @@
     <style>
         * { box-sizing: border-box; user-select: none; -webkit-user-select: none; }
         body, html { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden; background-color: #050807; font-family: 'Inter', sans-serif; color: #d1dcd5; }
-        canvas { display: block; width: 100vw; height: 100vh; touch-action: none; }
-        #game-container { width: 100vw; height: 100vh; }
-        #portrait-warning { display: none; }
-        @media (orientation: portrait) and (max-width: 900px) {
-            #portrait-warning {
-                display: flex; position: fixed; inset: 0; z-index: 100;
-                background: #050807; color: #d1dcd5; align-items: center;
-                justify-content: center; text-align: center; padding: 24px;
-            }
-            #portrait-warning .portrait-card {
-                max-width: 360px; border: 1px solid rgba(114,239,179,.35);
-                border-radius: 18px; padding: 24px;
-                background: linear-gradient(135deg, rgba(14,22,19,.98), rgba(8,12,11,.98));
-                box-shadow: 0 20px 60px rgba(0,0,0,.8);
-            }
-        }
-        @media (orientation: landscape) { #portrait-warning { display: none !important; } }
-        @media (max-width: 700px) {
-            #touch-controls { padding: 0 8px 8px !important; }
-            #touch-controls > div:last-child { gap: 6px !important; padding-right: 4px !important; }
-            #joystick-zone { left: 12px; bottom: 12px; }
-            .action-btn { min-width: 58px; min-height: 58px; }
-        }
-        @media (max-height: 420px) {
-            #hud-objective { max-width: 42vw; margin: 0 auto; }
-            #inventory-bar { white-space: nowrap; }
-        }
-
-        /* HUD refinado — compacto, legível e pensado para landscape mobile */
-        #hud { z-index: 20; pointer-events: none; }
-        #hud > div:first-child { padding: 8px 10px !important; gap: 8px !important; }
-        .hud-panel { border-radius: 12px !important; backdrop-filter: blur(14px); }
-        #hud-objective { max-width: min(46vw, 560px) !important; border-radius: 12px !important; }
-        #hud-room { font-size: 11px !important; letter-spacing: .14em !important; }
-        #hud-sub { font-size: 9px !important; opacity: .72; }
-        #inventory-bar { gap: 6px !important; font-size: 8px !important; }
-        #inventory-bar span { padding: 3px 6px; border-radius: 999px; background: rgba(5,10,8,.55); border: 1px solid rgba(140,170,155,.14); }
-        #minimap-canvas { border-radius: 12px !important; border: 1px solid rgba(114,239,179,.25) !important; }
-        #touch-controls { z-index: 25; }
-        @media (max-height: 500px) and (orientation: landscape) {
-            #hud > div:first-child { padding: 5px 7px !important; }
-            #hud-objective { max-width: 39vw !important; }
-            .hud-panel { padding: 5px 8px !important; min-width: 72px !important; }
-            #inventory-bar { display: none !important; }
-        }
-        @media (max-width: 700px) and (orientation: landscape) {
-            #hud-objective { max-width: 38vw !important; }
-            #hud-room { font-size: 9px !important; }
-            #hud-sub { font-size: 7px !important; }
-        }
+        canvas { display: block; width: 100vw; height: 100vh; }
 
         /* UI Overlays & Glassmorphism */
         .glass-panel {
@@ -108,8 +59,20 @@
             transition: transform 0.05s ease-out;
         }
 
+        #action-buttons {
+            position: absolute;
+            right: 18px;
+            bottom: 18px;
+            width: 166px;
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+            z-index: 25;
+            pointer-events: none;
+        }
+        #action-buttons .action-btn { pointer-events: auto; }
         .action-btn {
-            width: 62px;
+            width: 78px;
             height: 62px;
             border-radius: 50%;
             background: rgba(15, 25, 21, 0.85);
@@ -130,8 +93,8 @@
             transform: scale(0.95);
         }
         .action-btn.primary {
-            width: 76px;
-            height: 76px;
+            width: 78px;
+            height: 62px;
             border-color: rgba(130, 220, 175, 0.6);
             background: radial-gradient(circle, rgba(28, 55, 42, 0.9) 0%, rgba(12, 24, 18, 0.9) 100%);
         }
@@ -228,108 +191,20 @@
         ::-webkit-scrollbar { width: 6px; }
         ::-webkit-scrollbar-track { background: rgba(10, 15, 13, 0.5); }
         ::-webkit-scrollbar-thumb { background: rgba(90, 120, 105, 0.5); border-radius: 3px; }
-    
-/* ===== HUD / CONTROLES MOBILE — versão estável ===== */
-#touch-controls{
-    position:fixed !important;
-    inset:0 !important;
-    width:100% !important;
-    height:100% !important;
-    padding:0 !important;
-    pointer-events:none !important;
-    z-index:50 !important;
-}
-#joystick-zone{
-    position:absolute !important;
-    left:max(18px, env(safe-area-inset-left)) !important;
-    bottom:max(18px, env(safe-area-inset-bottom)) !important;
-    width:132px !important;
-    height:132px !important;
-    margin:0 !important;
-    pointer-events:auto !important;
-    box-sizing:border-box !important;
-}
-#joystick-zone .joystick-ring{
-    position:absolute;
-    inset:10px;
-    border:1px dashed rgba(190,220,205,.25);
-    border-radius:50%;
-    pointer-events:none;
-}
-#joystick-knob{
-    position:absolute !important;
-    left:50% !important;
-    top:50% !important;
-    margin:-27px 0 0 -27px !important;
-    transform:translate(0,0);
-    pointer-events:none;
-}
-#action-pad{
-    position:absolute !important;
-    right:max(16px, env(safe-area-inset-right)) !important;
-    bottom:max(18px, env(safe-area-inset-bottom)) !important;
-    display:grid !important;
-    grid-template-columns:repeat(2,68px) !important;
-    grid-template-rows:repeat(2,68px) !important;
-    gap:9px !important;
-    padding:0 !important;
-    margin:0 !important;
-    pointer-events:auto !important;
-}
-#action-pad > div{display:contents !important;}
-#action-pad .action-btn{
-    width:68px !important;
-    height:68px !important;
-    min-width:68px !important;
-    min-height:68px !important;
-    max-width:68px !important;
-    max-height:68px !important;
-    margin:0 !important;
-    padding:7px !important;
-    border-radius:16px !important;
-    box-sizing:border-box !important;
-    display:flex !important;
-    flex-direction:column !important;
-    align-items:center !important;
-    justify-content:center !important;
-    gap:3px !important;
-    touch-action:none !important;
-}
-#action-pad .action-btn svg{width:21px !important;height:21px !important;margin:0 !important;}
-#action-pad .action-btn span{font-size:9px !important;line-height:1 !important;white-space:nowrap !important;}
-#action-pad #btn-interact{border-width:2px !important;}
-@media (max-width:520px), (max-height:430px){
-    #joystick-zone{width:108px !important;height:108px !important;left:12px !important;bottom:12px !important;}
-    #joystick-knob{width:44px !important;height:44px !important;margin:-22px 0 0 -22px !important;}
-    #action-pad{grid-template-columns:repeat(2,56px) !important;grid-template-rows:repeat(2,56px) !important;gap:7px !important;right:12px !important;bottom:12px !important;}
-    #action-pad .action-btn{width:56px !important;height:56px !important;min-width:56px !important;min-height:56px !important;padding:4px !important;border-radius:13px !important;}
-    #action-pad .action-btn svg{width:17px !important;height:17px !important;}
-    #action-pad .action-btn span{font-size:7px !important;}
-}
-/* top HUD: never let status cards collide */
-.hud-top-bar{align-items:flex-start !important;flex-wrap:nowrap !important;}
-.hud-top-bar > .hud-panel:first-child{flex:1 1 auto;min-width:0;}
-.hud-top-bar > .flex{flex:0 1 auto;}
-@media (max-height:430px){
-    #hud{padding:5px !important;}
-    .hud-top-bar{gap:5px !important;}
-    .hud-top-bar .hud-panel{padding:5px 7px !important;}
-    #hud-objective{max-width:42vw !important;}
-    #inventory-bar{display:none !important;}
-}
-/* prevent browser gesture scrolling while playing */
-#game-container, #game-container canvas{touch-action:none !important;overscroll-behavior:none !important;}
-
+            @media (max-width: 760px) and (orientation: landscape) {
+            #joystick-zone { left: 12px; bottom: 12px; width: 126px; height: 126px; }
+            #joystick-knob { width: 50px; height: 50px; }
+            #action-buttons { right: 12px; bottom: 12px; width: 154px; gap: 8px; }
+            .action-btn, .action-btn.primary { width: 73px; height: 58px; }
+        }
+        @media (max-width: 430px) and (orientation: portrait) {
+            #action-buttons { right: 8px; bottom: 8px; width: 144px; }
+            #joystick-zone { left: 8px; bottom: 8px; width: 112px; height: 112px; }
+            .action-btn, .action-btn.primary { width: 68px; height: 54px; }
+        }
 </style>
 </head>
 <body class="select-none overflow-hidden scanlines">
-    <div id="portrait-warning">
-        <div class="portrait-card">
-            <div class="text-emerald-400 text-xs font-bold tracking-widest mb-3">PROTOCOLO ZERO</div>
-            <div class="text-2xl font-black text-white mb-3">Vire o celular para a horizontal</div>
-            <div class="text-sm text-gray-400 leading-relaxed">O jogo foi otimizado para tela deitada. Ao iniciar, o navegador tentará entrar em tela cheia e bloquear a orientação em paisagem.</div>
-        </div>
-    </div>
 
     <!-- Canvas Container -->
     <div id="game-container" class="absolute inset-0 z-0"></div>
@@ -343,7 +218,7 @@
     <!-- HUD Overlay -->
     <div id="hud" class="fixed inset-0 z-20 pointer-events-none p-2 md:p-5 flex flex-col justify-between hidden">
         <!-- Top Status Bar & Minimap -->
-        <div class="hud-top-bar flex flex-nowrap justify-between items-start gap-2 w-full max-w-6xl mx-auto">
+        <div class="hud-top-bar flex flex-wrap md:flex-nowrap justify-between items-center md:items-start gap-2 w-full max-w-5xl mx-auto">
             <!-- Room & Location Card -->
             <div class="hud-panel glass-panel rounded-xl p-2 md:p-3 px-3 md:px-4 pointer-events-auto flex items-center gap-2 md:gap-3">
                 <div class="w-2.5 h-2.5 md:w-3 md:h-3 rounded-full bg-emerald-500 animate-pulse"></div>
@@ -375,15 +250,6 @@
                         <div id="bat-bar" class="h-full bg-amber-400 transition-all duration-300" style="width: 100%;"></div>
                     </div>
                 </div>
-                <div class="hud-panel glass-panel rounded-xl p-1.5 md:p-2 px-2.5 md:px-3 min-w-[70px] md:min-w-[95px]">
-                    <div class="flex justify-between items-center text-[9px] md:text-[10px] font-bold tracking-wider text-gray-300 mb-0.5 md:mb-1">
-                        <span>FÔLEGO</span>
-                        <span id="sta-val" class="text-sky-300 font-mono">100%</span>
-                    </div>
-                    <div class="w-full h-1 md:h-1.5 bg-gray-800 rounded-full overflow-hidden">
-                        <div id="sta-bar" class="h-full bg-sky-400 transition-all duration-300" style="width: 100%;"></div>
-                    </div>
-                </div>
             </div>
 
             <!-- Mini Map Radar -->
@@ -393,7 +259,7 @@
         </div>
 
         <!-- Objective & Inventory Banner -->
-        <div class="w-full max-w-lg mx-auto my-0.5 pointer-events-auto flex flex-col gap-1 md:gap-2">
+        <div class="w-full max-w-md mx-auto my-0.5 pointer-events-auto flex flex-col gap-1 md:gap-2">
             <div class="hud-obj-box glass-panel rounded-lg p-2 px-3 text-center border-l-4 border-l-emerald-500 shadow-lg">
                 <div class="text-[8px] md:text-[9px] font-bold tracking-widest text-emerald-400 uppercase mb-0.5">OBJETIVO ATUAL</div>
                 <div id="hud-objective" class="hud-obj-text text-[10px] md:text-xs font-medium text-gray-200">Investigue o hospital e encontre uma forma de reativar a energia.</div>
@@ -413,13 +279,12 @@
         </div>
 
         <!-- Touch Controls Layout -->
-        <div id="touch-controls" class="pointer-events-auto">
-            <div id="joystick-zone" aria-label="Joystick de movimento">
-                <div class="joystick-ring"></div>
+        <div id="touch-controls" class="w-full flex justify-between items-end pb-2 pointer-events-auto">
+            <div id="joystick-zone">
                 <div id="joystick-knob"></div>
             </div>
 
-            <div id="action-pad">
+            <div class="flex flex-col gap-3 items-end pr-2">
                 <div class="flex gap-2">
                     <button id="btn-flash" class="action-btn">
                         <svg class="w-5 h-5 mb-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
@@ -466,7 +331,7 @@
                 </div>
             </div>
 
-            <button type="button" id="btn-start-game" class="w-full py-4 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold tracking-widest text-sm transition-all duration-200 shadow-lg shadow-emerald-900/40 border border-emerald-400/40 uppercase">
+            <button id="btn-start-game" class="w-full py-4 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold tracking-widest text-sm transition-all duration-200 shadow-lg shadow-emerald-900/40 border border-emerald-400/40 uppercase">
                 INICIAR INVESTIGAÇÃO
             </button>
         </div>
@@ -490,7 +355,7 @@
                 <!-- Choice buttons injected dynamically -->
             </div>
 
-            <button type="button" id="btn-close-modal" class="w-full py-2.5 rounded-xl bg-gray-800 hover:bg-gray-700 text-gray-200 font-semibold text-xs tracking-wider transition-colors border border-white/10">
+            <button id="btn-close-modal" class="w-full py-2.5 rounded-xl bg-gray-800 hover:bg-gray-700 text-gray-200 font-semibold text-xs tracking-wider transition-colors border border-white/10">
                 FECHAR E CONTINUAR
             </button>
         </div>
@@ -502,7 +367,7 @@
             <div class="text-red-400 font-mono text-xs tracking-widest font-bold">SINAL DA VÍTIMA PERDIDO</div>
             <h2 class="text-3xl font-black text-white">VOCÊ FOI PEGO</h2>
             <p id="death-reason" class="text-xs text-gray-300">Algo na escuridão dos corredores alcançou você antes que pudesse ligar a energia da UTI.</p>
-            <button type="button" id="btn-retry" class="w-full py-3 rounded-xl bg-red-700 hover:bg-red-600 text-white font-bold text-xs tracking-widest uppercase">
+            <button id="btn-retry" class="w-full py-3 rounded-xl bg-red-700 hover:bg-red-600 text-white font-bold text-xs tracking-widest uppercase">
                 REINICIAR TENTATIVA
             </button>
         </div>
@@ -516,7 +381,7 @@
             <p class="text-xs text-gray-300 leading-relaxed">
                 Você destravou a porta de serviço e saiu na noite fria. Com você está o registro confidencial do Paciente 17-B. A verdade sobre o Protocolo Zero finalmente sairá do hospital.
             </p>
-            <button type="button" id="btn-restart" class="w-full py-3 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs tracking-widest uppercase">
+            <button id="btn-restart" class="w-full py-3 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs tracking-widest uppercase">
                 JOGAR NOVAMENTE
             </button>
         </div>
@@ -679,16 +544,8 @@
             setupPickups();
             createDustParticles();
             setupInputListeners();
-            updateHUD();
-            updateRoomHUD();
 
             window.addEventListener('resize', onWindowResize);
-            document.addEventListener('fullscreenchange', onWindowResize);
-            window.addEventListener('blur', () => {
-                Game.running = false;
-                Game.touchDir.x = 0;
-                Game.touchDir.y = 0;
-            });
         }
 
         function createMaterial(color, roughness = 0.8, metalness = 0.1) {
@@ -709,8 +566,8 @@
             medkit: new THREE.MeshStandardMaterial({ color: 0xef4444, roughness: 0.4, metalness: 0.2 })
         };
 
-        function addBoxCollider(x, z, w, d, type = 'object') {
-            Game.colliders.push({ x, z, w, d, type });
+        function addBoxCollider(x, z, w, d) {
+            Game.colliders.push({ x, z, w, d });
         }
 
         function createWall(x, z, w, d, height = 3.2) {
@@ -718,9 +575,8 @@
             mesh.position.set(x, height / 2, z);
             mesh.castShadow = true;
             mesh.receiveShadow = true;
-            mesh.userData.isWall = true;
             scene.add(mesh);
-            addBoxCollider(x, z, w, d, 'wall');
+            addBoxCollider(x, z, w, d);
             return mesh;
         }
 
@@ -792,7 +648,7 @@
             createWall(-9, 15, 0.2, 8);
             createWall(-5.75, 19, 6.5, 0.2);
             createWall(-5.75, 11, 6.5, 0.2);
-            createWall(-2.6, 15.0, 0.2, 8.0);
+            createWall(-2.6, 16.5, 0.2, 5);
             createDoorway(-2.6, 12.5, 0.2, 1.6, false, "Porta da Recepção", "RECEPÇÃO E TRIAGEM");
 
             createDesk(-6, 16, 2.5, 1.2);
@@ -805,7 +661,7 @@
             createWall(-9, 5, 0.2, 8);
             createWall(-5.75, 9, 6.5, 0.2);
             createWall(-5.75, 1, 6.5, 0.2);
-            createWall(-2.6, 5.0, 0.2, 8.0);
+            createWall(-2.6, 7, 0.2, 4);
             createDoorway(-2.6, 3, 0.2, 1.6, false, "Porta do Arquivo", "ARQUIVO MORTO");
 
             createFilingCabinet(-8, 3);
@@ -818,7 +674,7 @@
             createWall(-9, -5, 0.2, 8);
             createWall(-5.75, -1, 6.5, 0.2);
             createWall(-5.75, -9, 6.5, 0.2);
-            createWall(-2.6, -5.0, 0.2, 8.0);
+            createWall(-2.6, -7, 0.2, 4);
             createDoorway(-2.6, -3, 0.2, 1.6, false, "Porta da Farmácia", "FARMÁCIA");
 
             createColdStorage(-7.5, -7, "cold_storage");
@@ -828,7 +684,7 @@
             createWall(9, 14, 0.2, 10);
             createWall(5.75, 19, 6.5, 0.2);
             createWall(5.75, 9, 6.5, 0.2);
-            createWall(2.6, 14.0, 0.2, 10.0);
+            createWall(2.6, 16.5, 0.2, 5);
             createDoorway(2.6, 11.5, 0.2, 1.6, false, "Porta da Enfermaria", "ENFERMARIA");
 
             createHospitalBed(6, 16);
@@ -839,7 +695,7 @@
             createWall(9, 3, 0.2, 8);
             createWall(5.75, 7, 6.5, 0.2);
             createWall(5.75, -1, 6.5, 0.2);
-            createWall(2.6, 3.0, 0.2, 8.0);
+            createWall(2.6, 5, 0.2, 4);
             createDoorway(2.6, 1, 0.2, 1.6, false, "Porta da UTI", "UTI INTENSIVA");
 
             createICUBed(6, 4);
@@ -850,15 +706,12 @@
             createWall(9, -13, 0.2, 8);
             createWall(5.75, -9, 6.5, 0.2);
             createWall(5.75, -17, 6.5, 0.2);
-            createWall(2.6, -13.0, 0.2, 8.0);
+            createWall(2.6, -11, 0.2, 4);
             createDoorway(2.6, -15, 0.2, 1.6, false, "Porta da Manutenção", "MANUTENÇÃO E GERADOR");
 
             createGeneratorProp(6.5, -13, "generator_panel");
 
             // SAÍDA DE SERVIÇO
-            // Parede de fundo com abertura real para a saída.
-            createWall(-1.85, -18.5, 1.5, 0.2);
-            createWall(1.85, -18.5, 1.5, 0.2);
             createDoorway(0, -18.5, 2.2, 0.2, true, "Saída de Serviço (Trancada)", "SAÍDA DE SERVIÇO");
             createDocument(0, -17.5, 0.2, "service_exit_note", "AVISO NA SAÍDA DE SERVIÇO", 
                 "SISTEMA DE EMERGÊNCIA ATIVO\n\nA porta de serviço permanece selada pelo Protocolo Zero. Para destravar a saída, a energia principal deve ser restaurada no Gerador e o comando confirmado no Console da UTI.");
@@ -1025,63 +878,115 @@
         function createPlayerMesh() {
             const group = new THREE.Group();
 
-            const body = new THREE.Mesh(new THREE.CylinderGeometry(0.3, 0.25, 1.4, 12), createMaterial(0x2a3e35, 0.7, 0.1));
-            body.position.y = 0.7;
-            body.castShadow = true;
-            group.add(body);
+            // Sobrevivente: silhueta mais legível em 2.5D, sem alterar a jogabilidade.
+            const suitMat = createMaterial(0x263a32, 0.72, 0.05);
+            const darkMat = createMaterial(0x101714, 0.85, 0.02);
+            const skinMat = createMaterial(0xc9946d, 0.82, 0);
+            const bootMat = createMaterial(0x090c0b, 0.9, 0.05);
 
-            const head = new THREE.Mesh(new THREE.SphereGeometry(0.22, 12, 12), createMaterial(0xd0a880, 0.8, 0));
-            head.position.y = 1.55;
+            const torso = new THREE.Mesh(new THREE.BoxGeometry(0.48, 0.72, 0.32), suitMat);
+            torso.position.y = 0.98;
+            torso.castShadow = true;
+            group.add(torso);
+
+            const head = new THREE.Mesh(new THREE.SphereGeometry(0.24, 16, 12), skinMat);
+            head.position.y = 1.58;
             head.castShadow = true;
             group.add(head);
 
-            const flashlight = new THREE.SpotLight(0xddeedd, 4.2, 12, Math.PI / 7, 0.72, 1.4);
-            flashlight.shadow.mapSize.width = 1024;
-            flashlight.shadow.mapSize.height = 1024;
-            flashlight.shadow.camera.near = 0.1;
-            flashlight.shadow.camera.far = 12;
-            flashlight.shadow.bias = -0.00025;
-            flashlight.shadow.normalBias = 0.035;
-            flashlight.position.set(0, 1.4, 0);
+            const hair = new THREE.Mesh(new THREE.SphereGeometry(0.245, 16, 8, 0, Math.PI * 2, 0, Math.PI * 0.48), darkMat);
+            hair.position.y = 1.67;
+            hair.castShadow = true;
+            group.add(hair);
+
+            for (const side of [-1, 1]) {
+                const arm = new THREE.Mesh(new THREE.CapsuleGeometry(0.085, 0.38, 4, 8), suitMat);
+                arm.position.set(side * 0.31, 1.02, -0.01);
+                arm.rotation.z = side * 0.16;
+                arm.castShadow = true;
+                group.add(arm);
+
+                const leg = new THREE.Mesh(new THREE.BoxGeometry(0.14, 0.48, 0.16), darkMat);
+                leg.position.set(side * 0.12, 0.45, 0);
+                leg.castShadow = true;
+                group.add(leg);
+
+                const boot = new THREE.Mesh(new THREE.BoxGeometry(0.17, 0.12, 0.25), bootMat);
+                boot.position.set(side * 0.12, 0.19, -0.035);
+                boot.castShadow = true;
+                group.add(boot);
+            }
+
+            // Lanterna: feixe mais forte, longo e com sombras reais.
+            const flashlight = new THREE.SpotLight(0xeafff0, 8.0, 18, Math.PI / 5.5, 0.58, 1.15);
+            flashlight.position.set(0, 1.32, -0.12);
             flashlight.castShadow = true;
-            
+            flashlight.shadow.mapSize.set(1024, 1024);
+            flashlight.shadow.bias = -0.0008;
+            flashlight.shadow.normalBias = 0.025;
+            flashlight.shadow.camera.near = 0.1;
+            flashlight.shadow.camera.far = 18;
+
             const spotTarget = new THREE.Object3D();
-            spotTarget.position.set(0, 0.8, -3);
+            spotTarget.position.set(0, 1.05, -6);
             group.add(spotTarget);
             flashlight.target = spotTarget;
             group.add(flashlight);
 
+            // Pequeno brilho na origem da lanterna para deixar o estado visível.
+            const lamp = new THREE.Mesh(
+                new THREE.SphereGeometry(0.045, 10, 8),
+                new THREE.MeshBasicMaterial({ color: 0xf4fff8 })
+            );
+            lamp.position.set(0, 1.32, -0.22);
+            group.add(lamp);
+
             group.position.set(Game.player.x, 0, Game.player.z);
             scene.add(group);
-
             Game.player.mesh = group;
             Game.player.light = flashlight;
         }
 
         function setupEnemies() {
             const enemyGroup = new THREE.Group();
-            const body = new THREE.Mesh(new THREE.CylinderGeometry(0.35, 0.3, 1.6, 10), createMaterial(0x1a1212, 0.9, 0));
-            body.position.y = 0.8;
-            
-            const eyeMat = new THREE.MeshBasicMaterial({ color: 0xff2200 });
-            const eyeL = new THREE.Mesh(new THREE.SphereGeometry(0.04, 8, 8), eyeMat);
-            eyeL.position.set(-0.1, 1.5, -0.25);
-            const eyeR = new THREE.Mesh(new THREE.SphereGeometry(0.04, 8, 8), eyeMat);
-            eyeR.position.set(0.1, 1.5, -0.25);
+            const skin = createMaterial(0x332322, 0.95, 0);
+            const cloth = createMaterial(0x151817, 0.9, 0);
+            const wound = new THREE.MeshBasicMaterial({ color: 0x7d1717 });
 
-            enemyGroup.add(body, eyeL, eyeR);
+            const torso = new THREE.Mesh(new THREE.BoxGeometry(0.52, 0.78, 0.34), cloth);
+            torso.position.y = 0.9;
+            torso.castShadow = true;
+
+            const head = new THREE.Mesh(new THREE.SphereGeometry(0.25, 14, 10), skin);
+            head.position.y = 1.55;
+            head.castShadow = true;
+
+            const jaw = new THREE.Mesh(new THREE.BoxGeometry(0.25, 0.13, 0.22), wound);
+            jaw.position.set(0, 1.43, -0.19);
+
+            const eyeMat = new THREE.MeshBasicMaterial({ color: 0xff2b18 });
+            const eyeL = new THREE.Mesh(new THREE.SphereGeometry(0.045, 10, 8), eyeMat);
+            eyeL.position.set(-0.095, 1.58, -0.205);
+            const eyeR = eyeL.clone();
+            eyeR.position.x = 0.095;
+
+            enemyGroup.add(torso, head, jaw, eyeL, eyeR);
+            for (const side of [-1, 1]) {
+                const arm = new THREE.Mesh(new THREE.CapsuleGeometry(0.08, 0.48, 4, 8), cloth);
+                arm.position.set(side * 0.34, 0.88, -0.02);
+                arm.rotation.z = side * 0.25;
+                arm.rotation.x = 0.15;
+                arm.castShadow = true;
+                enemyGroup.add(arm);
+                const leg = new THREE.Mesh(new THREE.BoxGeometry(0.15, 0.5, 0.16), cloth);
+                leg.position.set(side * 0.13, 0.34, 0);
+                leg.castShadow = true;
+                enemyGroup.add(leg);
+            }
+
             enemyGroup.position.set(0, 0, -8);
             scene.add(enemyGroup);
-
-            Game.monsters.push({
-                mesh: enemyGroup,
-                x: 0, z: -8,
-                patrolZ1: -14,
-                patrolZ2: 6,
-                dir: 1,
-                speed: 1.8,
-                alert: false
-            });
+            Game.monsters.push({ mesh: enemyGroup, x: 0, z: -8, patrolZ1: -14, patrolZ2: 6, dir: 1, speed: 1.8, alert: false });
         }
 
         function setupPickups() {
@@ -1109,7 +1014,6 @@
             let startX = 0, startY = 0;
 
             zone.addEventListener('pointerdown', e => {
-                e.preventDefault();
                 joystickActive = true;
                 startX = e.clientX;
                 startY = e.clientY;
@@ -1117,7 +1021,6 @@
             });
 
             zone.addEventListener('pointermove', e => {
-                e.preventDefault();
                 if (!joystickActive) return;
                 const dx = e.clientX - startX;
                 const dy = e.clientY - startY;
@@ -1132,6 +1035,7 @@
 
                 knob.style.transform = `translate(${knobX}px, ${knobY}px)`;
 
+                // Coordenadas da tela: para baixo = +Z no mapa do hospital.
                 Game.touchDir.x = knobX / maxR;
                 Game.touchDir.y = knobY / maxR;
             });
@@ -1145,14 +1049,10 @@
 
             zone.addEventListener('pointerup', resetJoystick);
             zone.addEventListener('pointercancel', resetJoystick);
-            zone.addEventListener('lostpointercapture', resetJoystick);
 
             $('btn-flash').addEventListener('click', () => {
                 AudioSys.playClick();
-                if (!Game.flashOn && Game.battery <= 0) {
-                    showToast("Sem bateria para ligar a lanterna.");
-                    return;
-                }
+                if (!Game.flashOn && Game.battery <= 0) { showToast('Bateria da lanterna esgotada.'); return; }
                 Game.flashOn = !Game.flashOn;
                 Game.player.light.visible = Game.flashOn;
             });
@@ -1163,37 +1063,21 @@
                 showToast(Game.crouch ? "Modo Sigilo Ativado" : "Modo Normal");
             });
 
-            const runButton = $('btn-run');
-            runButton.addEventListener('pointerdown', e => {
-                e.preventDefault();
-                Game.running = true;
-                try { runButton.setPointerCapture(e.pointerId); } catch (_) {}
-            });
-            const stopRunning = () => { Game.running = false; };
-            runButton.addEventListener('pointerup', stopRunning);
-            runButton.addEventListener('pointercancel', stopRunning);
-            runButton.addEventListener('lostpointercapture', stopRunning);
+            $('btn-run').addEventListener('pointerdown', () => Game.running = true);
+            $('btn-run').addEventListener('pointerup', () => Game.running = false);
 
             $('btn-interact').addEventListener('click', handleInteraction);
 
             window.addEventListener('keydown', e => {
                 Game.keys[e.code] = true;
-                if (['Space','ArrowUp','ArrowDown','ArrowLeft','ArrowRight'].includes(e.code)) e.preventDefault();
                 if (e.code === 'KeyE') handleInteraction();
                 if (e.code === 'KeyF') {
                     AudioSys.playClick();
-                    if (!Game.flashOn && Game.battery <= 0) {
-                        showToast("Sem bateria para ligar a lanterna.");
-                    } else {
-                        Game.flashOn = !Game.flashOn;
-                        Game.player.light.visible = Game.flashOn;
-                    }
+                    Game.flashOn = !Game.flashOn;
+                    Game.player.light.visible = Game.flashOn;
                 }
             });
-            window.addEventListener('keyup', e => {
-                Game.keys[e.code] = false;
-                if (e.code === 'ShiftLeft' || e.code === 'ShiftRight') Game.running = false;
-            });
+            window.addEventListener('keyup', e => Game.keys[e.code] = false);
 
             $('btn-start-game').addEventListener('click', startGame);
             $('btn-close-modal').addEventListener('click', closeModal);
@@ -1209,33 +1093,24 @@
             window._toastTimer = setTimeout(() => toast.style.opacity = '0', 2500);
         }
 
-        async function enterImmersiveLandscape() {
-            // O pedido de fullscreen precisa acontecer diretamente no gesto do usuário.
+        async function startGame() {
+            // O navegador só permite fullscreen após gesto do usuário.
             try {
                 if (!document.fullscreenElement && document.documentElement.requestFullscreen) {
                     await document.documentElement.requestFullscreen({ navigationUI: 'hide' });
                 }
-            } catch (err) {
-                showToast('Toque em INICIAR novamente para ativar tela cheia.');
-            }
-
-            try {
                 if (screen.orientation && screen.orientation.lock) {
-                    await screen.orientation.lock('landscape');
+                    try { await screen.orientation.lock('landscape'); } catch (_) {}
                 }
-            } catch (err) {}
-        }
-
-        async function startGame() {
-            // Primeiro fullscreen; depois áudio/UI. Isso aumenta a compatibilidade com Chrome Android.
-            await enterImmersiveLandscape();
+            } catch (_) {}
             AudioSys.init();
             AudioSys.playClick();
             $('boot-screen').classList.add('hidden');
             $('hud').classList.remove('hidden');
             Game.active = true;
+            Game.flashOn = true;
+            Game.player.light.visible = true;
             updateHUD();
-            updateRoomHUD();
         }
 
         function showModal(title, bodyText, eyebrow = "DOCUMENTO ENCONTRADO", choices = []) {
@@ -1275,12 +1150,6 @@
 
             if (target.type === 'door') {
                 const door = target.data;
-
-                if (door.targetRoom === 'SAÍDA DE SERVIÇO' && !Game.icuUnlocked) {
-                    showToast("Saída selada. Desative o Protocolo Zero no Console da UTI.");
-                    return;
-                }
-
                 door.open = !door.open;
                 AudioSys.playDoor();
                 door.mesh.rotation.y = door.open ? Math.PI / 2 : 0;
@@ -1391,60 +1260,21 @@
 
         function checkCollision(nx, nz) {
             const radius = 0.35;
-
             for (const col of Game.colliders) {
-                let blockedByWall = true;
-
-                if (col.type === 'wall') {
-                    for (const door of Game.doors) {
-                        const aligned = Math.abs(door.x - col.x) < 0.35 || Math.abs(door.z - col.z) < 0.35;
-                        const inDoorX = nx + radius > door.x - door.w/2 && nx - radius < door.x + door.w/2;
-                        const inDoorZ = nz + radius > door.z - door.d/2 && nz - radius < door.z + door.d/2;
-
-                        if (door.open && aligned && inDoorX && inDoorZ) {
-                            blockedByWall = false;
-                            break;
-                        }
-                    }
-                }
-
-                if (blockedByWall &&
-                    nx + radius > col.x - col.w/2 && nx - radius < col.x + col.w/2 &&
+                if (nx + radius > col.x - col.w/2 && nx - radius < col.x + col.w/2 &&
                     nz + radius > col.z - col.d/2 && nz - radius < col.z + col.d/2) {
                     return true;
                 }
             }
-
             for (const door of Game.doors) {
-                if (!door.open &&
-                    nx + radius > door.x - door.w/2 && nx - radius < door.x + door.w/2 &&
-                    nz + radius > door.z - door.d/2 && nz - radius < door.z + door.d/2) {
-                    return true;
+                if (!door.open) {
+                    if (nx + radius > door.x - door.w/2 && nx - radius < door.x + door.w/2 &&
+                        nz + radius > door.z - door.d/2 && nz - radius < door.z + door.d/2) {
+                        return true;
+                    }
                 }
             }
             return false;
-        }
-
-        function updateFlashlightOcclusion() {
-            if (!Game.player.light || !Game.flashOn) return;
-            // The renderer's shadow map provides the visual occlusion. This additional
-            // ray test prevents the beam from visibly lighting through a nearby wall.
-            const light = Game.player.light;
-            const origin = new THREE.Vector3();
-            const target = new THREE.Vector3();
-            light.getWorldPosition(origin);
-            light.target.getWorldPosition(target);
-            const dir = target.clone().sub(origin);
-            const distance = dir.length();
-            if (distance < 0.01) return;
-            dir.normalize();
-            const ray = new THREE.Raycaster(origin, dir, 0.05, Math.min(distance, 12));
-            const wallMeshes = [];
-            scene.traverse(obj => {
-                if (obj.isMesh && obj.userData && obj.userData.isWall) wallMeshes.push(obj);
-            });
-            const hit = ray.intersectObjects(wallMeshes, false)[0];
-            light.intensity = hit ? 0.18 : 4.2;
         }
 
         function updatePlayer(dt) {
@@ -1457,15 +1287,13 @@
             if (Game.keys['KeyD'] || Game.keys['ArrowRight']) moveX = 1;
             if (Game.keys['KeyW'] || Game.keys['ArrowUp']) moveZ = -1;
             if (Game.keys['KeyS'] || Game.keys['ArrowDown']) moveZ = 1;
-            Game.running = !!Game.keys['ShiftLeft'] || !!Game.keys['ShiftRight'] || Game.running;
 
             const len = Math.hypot(moveX, moveZ);
             if (len > 0.05) {
                 moveX /= len;
                 moveZ /= len;
 
-                const wantsRun = Game.running && !Game.crouch && Game.stamina > 0;
-                let speed = wantsRun ? 4.2 : (Game.crouch ? 1.4 : 2.5);
+                let speed = Game.running ? 4.2 : (Game.crouch ? 1.4 : 2.5);
                 const nextX = Game.player.x + moveX * speed * dt;
                 const nextZ = Game.player.z + moveZ * speed * dt;
 
@@ -1478,14 +1306,6 @@
                 if (Math.random() < (Game.running ? 0.35 : 0.18)) {
                     AudioSys.playStep();
                 }
-            }
-
-            const moving = len > 0.05;
-            if (Game.running && !Game.crouch && moving) {
-                Game.stamina = Math.max(0, Game.stamina - 32 * dt);
-                if (Game.stamina <= 0) Game.running = false;
-            } else {
-                Game.stamina = Math.min(100, Game.stamina + 20 * dt);
             }
 
             // Battery drain logic when flashlight is turned on
@@ -1518,9 +1338,6 @@
             }
 
             Game.player.mesh.position.set(Game.player.x, 0, Game.player.z);
-            if (Game.player.light) Game.player.light.position.set(0, 1.4, 0);
-            updateFlashlightOcclusion();
-            updateRoomHUD();
 
             // Smooth Camera Follow
             const targetCamX = Game.player.x;
@@ -1619,37 +1436,12 @@
             }
         }
 
-        function updateRoomHUD() {
-            const x = Game.player.x;
-            const z = Game.player.z;
-            let room = 'CORREDOR CENTRAL';
-            let sector = 'CIRCULAÇÃO · TÉRREO';
-
-            if (x < -2.65) {
-                if (z >= 11 && z <= 19) { room = 'RECEPÇÃO E TRIAGEM'; sector = 'SETOR 01 · TÉRREO'; }
-                else if (z >= 1 && z <= 9) { room = 'ARQUIVO MORTO'; sector = 'SETOR 02 · TÉRREO'; }
-                else if (z >= -9 && z <= -1) { room = 'FARMÁCIA'; sector = 'SETOR 03 · TÉRREO'; }
-            } else if (x > 2.65) {
-                if (z >= 9 && z <= 19) { room = 'ENFERMARIA'; sector = 'SETOR 04 · TÉRREO'; }
-                else if (z >= -1 && z <= 7) { room = 'UTI INTENSIVA'; sector = 'SETOR 05 · TÉRREO'; }
-                else if (z >= -17 && z <= -9) { room = 'MANUTENÇÃO E GERADOR'; sector = 'SETOR 06 · TÉRREO'; }
-            }
-
-            if (Game.currentRoom !== room) {
-                Game.currentRoom = room;
-                $('hud-room').textContent = room;
-                $('hud-sub').textContent = sector;
-            }
-        }
-
         function updateHUD() {
             $('hp-val').textContent = `${Math.max(0, Math.round(Game.hp))}%`;
             $('hp-bar').style.width = `${Math.max(0, Game.hp)}%`;
 
             $('bat-val').textContent = `${Math.max(0, Math.round(Game.battery))}%`;
             $('bat-bar').style.width = `${Math.max(0, Game.battery)}%`;
-            $('sta-val').textContent = `${Math.max(0, Math.round(Game.stamina))}%`;
-            $('sta-bar').style.width = `${Math.max(0, Game.stamina)}%`;
         }
 
         function onWindowResize() {
@@ -1669,6 +1461,8 @@
 
             renderer.render(scene, camera);
         }
+
+        document.addEventListener('fullscreenchange', onWindowResize);
 
         window.addEventListener('DOMContentLoaded', () => {
             initEngine();
